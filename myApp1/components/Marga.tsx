@@ -22,10 +22,10 @@ export default function Marga({ onBack }: Props) {
       <View style={styles.content}>
         <Text style={styles.subtitle}>Indoor Navigation Active</Text>
         
-        {/* Placeholder for Camera */}
+        {/* Placeholder Box */}
         <View style={styles.placeholderBox}>
           <FontAwesome5 name="route" size={50} color="#333" style={{marginBottom: 20}} />
-          <Text style={styles.placeholderText}>[ Camera Feed Here ]</Text>
+          <Text style={styles.placeholderText}>[ Pathfinding Module Loading... ]</Text>
         </View>
       </View>
 
