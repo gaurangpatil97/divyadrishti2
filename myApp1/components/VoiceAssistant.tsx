@@ -306,13 +306,7 @@ export default function VoiceAssistant({ onNavigate, onClose }: VoiceAssistantPr
     const lowerText = text.toLowerCase();
     
     // Navigation commands
-    if (lowerText.includes('home') || lowerText.includes('main') || lowerText.includes('back to home')) {
-      Speech.speak('Going to home screen', {
-        onDone: () => {
-          setTimeout(() => onNavigate('HOME'), 300);
-        }
-      });
-    } else if (lowerText.includes('netra') || lowerText.includes('vision') || lowerText.includes('detection') || lowerText.includes('eye')) {
+    if (lowerText.includes('netra') || lowerText.includes('vision') || lowerText.includes('detection') || lowerText.includes('eye')) {
       Speech.speak('Opening Netra vision mode', {
         onDone: () => {
           setTimeout(() => onNavigate('NETRA'), 300);
@@ -331,7 +325,7 @@ export default function VoiceAssistant({ onNavigate, onClose }: VoiceAssistantPr
         }
       });
     } else {
-      Speech.speak('I can help you navigate to Home, Netra, Mudra, or Marga. Please say one of these.');
+      Speech.speak('I can help you navigate to Netra, Mudra, or Marga. Please say one of these.');
       setIsProcessing(false);
     }
   };
@@ -409,7 +403,6 @@ export default function VoiceAssistant({ onNavigate, onClose }: VoiceAssistantPr
         ) : (
           <View style={styles.suggestionsContainer}>
             <Text style={styles.suggestionsTitle}>Voice commands you can use:</Text>
-            <Text style={styles.suggestionText}>Go to home or Main screen</Text>
             <Text style={styles.suggestionText}>Go to Netra or Open vision</Text>
             <Text style={styles.suggestionText}>Go to Mudra or Open currency</Text>
             <Text style={styles.suggestionText}>Go to Marga or Open navigation</Text>

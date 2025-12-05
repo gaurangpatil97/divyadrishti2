@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Vibration } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Vibration, TouchableWithoutFeedback } from 'react-native';
 import { FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
 
 // ✅ CORRECT RELATIVE PATHS BASED ON YOUR FOLDER STRUCTURE
 import Netra from '../../components/Netra';
 import Mudra from '../../components/Mudra';
 import Marga from '../../components/Marga';
+import VoiceAssistant from '../../components/VoiceAssistant';
 
 // 1. DEFINE TYPES
 interface FeatureCardProps {
@@ -46,6 +47,39 @@ const FeatureCard = ({ title, subtitle, description, icon, isActive, onPress }: 
 export default function HomeScreen() {
   const [selectedMode, setSelectedMode] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false); // Controls if we show the camera or the menu
+  const [showVoiceAssistant, setShowVoiceAssistant] = useState(false);
+  const [tapCount, setTapCount] = useState(0);
+  const [tapTimeout, setTapTimeout] = useState<ReturnType<typeof setTimeout> | null>(null);
+
+  // --- TRIPLE TAP DETECTION ---
+  const handleTripleTap = () => {
+    if (tapTimeout) {
+      clearTimeout(tapTimeout);
+    }
+
+    const newTapCount = tapCount + 1;
+    setTapCount(newTapCount);
+
+    if (newTapCount === 3) {
+      // Triple tap detected!
+      Vibration.vibrate([0, 50, 100, 50]);
+      setShowVoiceAssistant(true);
+      setTapCount(0);
+    } else {
+      // Reset after 500ms if no third tap
+      const timeout = setTimeout(() => {
+        setTapCount(0);
+      }, 500);
+      setTapTimeout(timeout);
+    }
+  };
+
+  // --- VOICE ASSISTANT NAVIGATION ---
+  const handleVoiceNavigate = (destination: string) => {
+    setSelectedMode(destination);
+    setShowVoiceAssistant(false);
+    setIsScanning(true);
+  };
 
   // --- LOGIC: SWITCHING COMPONENTS ---
   // If we are scanning, show the specific component instead of the menu
@@ -67,7 +101,9 @@ export default function HomeScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+    <TouchableWithoutFeedback onPress={handleTripleTap}>
+      <View style={{ flex: 1 }}>
+        <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
           
           {/* HEADER */}
           <View style={styles.header}>
@@ -117,6 +153,16 @@ export default function HomeScreen() {
           </View>
 
         </ScrollView>
+
+        {/* VOICE ASSISTANT OVERLAY */}
+        {showVoiceAssistant && (
+          <VoiceAssistant
+            onNavigate={handleVoiceNavigate}
+            onClose={() => setShowVoiceAssistant(false)}
+          />
+        )}
+      </View>
+    </TouchableWithoutFeedback>
   );
 }
 
