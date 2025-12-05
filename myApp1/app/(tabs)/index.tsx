@@ -68,55 +68,55 @@ export default function HomeScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      
-      {/* HEADER */}
-      <View style={styles.header}>
-        <Text style={styles.appName}>DIVYA<Text style={styles.appNameHighlight}>DRISHTI</Text></Text>
-        <Text style={styles.tagline}>AI Vision Assistant</Text>
-      </View>
+          
+          {/* HEADER */}
+          <View style={styles.header}>
+            <Text style={styles.appName}>DIVYA<Text style={styles.appNameHighlight}>DRISHTI</Text></Text>
+            <Text style={styles.tagline}>AI Vision Assistant</Text>
+          </View>
 
-      <Text style={styles.sectionTitle}>Select Assistance Mode</Text>
+          <Text style={styles.sectionTitle}>Select Assistance Mode</Text>
 
-      {/* GRID OF BOXES */}
-      <View style={styles.grid}>
-        <FeatureCard 
-          title="NETRA" subtitle="(Vision)"
-          description="Semantic Depth Detection. Identifies objects and judges distance."
-          icon="eye"
-          isActive={selectedMode === 'NETRA'}
-          onPress={() => setSelectedMode('NETRA')}
-        />
-        <FeatureCard 
-          title="MUDRA" subtitle="(Finance)"
-          description="Currency Assistant. Scans notes and calculates total value."
-          icon="rupee-sign"
-          isActive={selectedMode === 'MUDRA'}
-          onPress={() => setSelectedMode('MUDRA')}
-        />
-        <FeatureCard 
-          title="MARGA" subtitle="(Navigation)"
-          description="Indoor Guide. Marker-based navigation for washrooms and exits."
-          icon="route"
-          isActive={selectedMode === 'MARGA'}
-          onPress={() => setSelectedMode('MARGA')}
-        />
-      </View>
+          {/* GRID OF BOXES */}
+          <View style={styles.grid}>
+            <FeatureCard 
+              title="NETRA" subtitle="(Vision)"
+              description="Semantic Depth Detection. Identifies objects and judges distance."
+              icon="eye"
+              isActive={selectedMode === 'NETRA'}
+              onPress={() => setSelectedMode('NETRA')}
+            />
+            <FeatureCard 
+              title="MUDRA" subtitle="(Finance)"
+              description="Currency Assistant. Scans notes and calculates total value."
+              icon="rupee-sign"
+              isActive={selectedMode === 'MUDRA'}
+              onPress={() => setSelectedMode('MUDRA')}
+            />
+            <FeatureCard 
+              title="MARGA" subtitle="(Navigation)"
+              description="Indoor Guide. Marker-based navigation for washrooms and exits."
+              icon="route"
+              isActive={selectedMode === 'MARGA'}
+              onPress={() => setSelectedMode('MARGA')}
+            />
+          </View>
 
-      {/* START BUTTON */}
-      <View style={styles.footer}>
-        <TouchableOpacity 
-          style={[styles.startButton, !selectedMode && styles.disabledButton]}
-          onPress={handleStart}
-          disabled={!selectedMode}
-        >
-          <Text style={styles.startButtonText}>
-            {selectedMode ? `ACTIVATE ${selectedMode}` : "SELECT A MODE"}
-          </Text>
-          <MaterialCommunityIcons name="camera-iris" size={28} color="#000" style={{marginLeft: 10}} />
-        </TouchableOpacity>
-      </View>
+          {/* START BUTTON */}
+          <View style={styles.footer}>
+            <TouchableOpacity 
+              style={[styles.startButton, !selectedMode && styles.disabledButton]}
+              onPress={handleStart}
+              disabled={!selectedMode}
+            >
+              <Text style={styles.startButtonText}>
+                {selectedMode ? `ACTIVATE ${selectedMode}` : "SELECT A MODE"}
+              </Text>
+              <MaterialCommunityIcons name="camera-iris" size={28} color="#000" style={{marginLeft: 10}} />
+            </TouchableOpacity>
+          </View>
 
-    </ScrollView>
+        </ScrollView>
   );
 }
 

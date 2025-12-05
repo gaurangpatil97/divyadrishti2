@@ -3,6 +3,7 @@ import time
 import logging
 from collections import defaultdict
 from datetime import datetime
+import os
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -10,10 +11,14 @@ from ultralytics import YOLO
 from PIL import Image
 import torch
 import numpy as np
-
+from groq import Groq
+from dotenv import load_dotenv
 # Initialize Flask app
 app = Flask(__name__)
 CORS(app)
+load_dotenv()
+# Initialize Groq client (make sure to set GROQ_API_KEY environment variable)
+groq_client = Groq(api_key=os.getenv('GROQ_API_KEY'))
 
 # Configure logging (reduced for performance)
 logging.basicConfig(
@@ -395,6 +400,163 @@ def internal_error(error):
 def request_entity_too_large(error):
     return jsonify({"error": "File too large"}), 413
 
+# ==================== VOICE TRANSCRIPTION ENDPOINT ====================
+@app.route('/transcribe', methods=['POST'])
+def transcribe_audio():
+    """
+    Transcribe audio to text using Groq's Whisper API.
+    Expects audio file in request.
+    """
+    print("\n" + "="*60)
+    print("🎤 TRANSCRIPTION REQUEST RECEIVED")
+    print("="*60)
+    
+    try:
+        if 'audio' not in request.files:
+            print("❌ ERROR: No audio file in request")
+            return jsonify({'error': 'No audio file provided'}), 400
+        
+        audio_file = request.files['audio']
+        print(f"📁 Audio file received: {audio_file.filename}")
+        
+        if not audio_file:
+            print("❌ ERROR: Empty audio file")
+            return jsonify({'error': 'Empty audio file'}), 400
+        
+        # Check if Groq API key is configured
+        if not groq_client.api_key:
+            print("❌ ERROR: Groq API key not configured")
+            return jsonify({'error': 'Groq API key not configured'}), 500
+        
+        print("✅ Groq API key found")
+        
+        # Read audio file
+        audio_data = audio_file.read()
+        file_size = len(audio_data)
+        
+        print(f"📊 Audio file size: {file_size} bytes ({file_size/1024:.2f} KB)")
+        
+        # Check audio file size (minimum 1KB to avoid empty/silent recordings)
+        if file_size < 1000:
+            print(f"⚠️  WARNING: Audio file too small: {file_size} bytes")
+            return jsonify({
+                'success': False,
+                'text': '',
+                'error': 'Audio file too small or silent'
+            }), 400
+        
+        # Create a temporary file-like object
+        audio_file_obj = io.BytesIO(audio_data)
+        audio_file_obj.name = 'audio.m4a'
+        
+        print("� Sending to Groq Whisper API...")
+        print(f"   Model: whisper-large-v3-turbo")
+        print(f"   Language: en")
+        print(f"   Temperature: 0.0")
+        
+        # Transcribe using Groq Whisper with optimized parameters
+        transcription = groq_client.audio.transcriptions.create(
+            file=(audio_file_obj.name, audio_data),  # Pass as tuple (filename, bytes)
+            model="whisper-large-v3-turbo",
+            language="en",  # Improves accuracy and latency
+            response_format="verbose_json",
+            temperature=0.0,  # Most deterministic output
+            prompt="Voice commands for navigation: Netra for vision, Mudra for currency, Marga for navigation."  # Context helps accuracy
+        )
+        
+        transcribed_text = transcription.text.strip()
+        
+        print("="*60)
+        print(f"📝 RAW TRANSCRIPTION FROM GROQ:")
+        print(f"   Text: '{transcribed_text}'")
+        print(f"   Length: {len(transcribed_text)} characters")
+        print(f"   Language: {getattr(transcription, 'language', 'N/A')}")
+        print(f"   Duration: {getattr(transcription, 'duration', 'N/A')} seconds")
+        
+        # Debug verbose_json metadata
+        if hasattr(transcription, 'segments') and transcription.segments:
+            print(f"   Segments: {len(transcription.segments)}")
+            for i, seg in enumerate(transcription.segments[:5]):  # Show first 5 segments
+                avg_logprob = seg.get('avg_logprob', 'N/A')
+                no_speech_prob = seg.get('no_speech_prob', 'N/A')
+                compression_ratio = seg.get('compression_ratio', 'N/A')
+                seg_text = seg.get('text', '')
+                
+                print(f"      Segment {i+1}:")
+                print(f"         Text: '{seg_text}'")
+                print(f"         Avg LogProb: {avg_logprob} (closer to 0 = better)")
+                print(f"         No Speech Prob: {no_speech_prob} (lower = actual speech)")
+                print(f"         Compression Ratio: {compression_ratio}")
+                
+                # Flag potential issues
+                if isinstance(avg_logprob, (int, float)) and avg_logprob < -0.5:
+                    print(f"         ⚠️  LOW CONFIDENCE!")
+                if isinstance(no_speech_prob, (int, float)) and no_speech_prob > 0.5:
+                    print(f"         ⚠️  MIGHT BE SILENCE/NOISE!")
+        
+        print("="*60)
+        
+        # Improved noise detection using metadata
+        is_likely_noise = False
+        
+        # Check if text matches common noise patterns
+        noise_words = ['thank you', 'thanks', 'you', 'bye', 'thank', 'you.']
+        if transcribed_text.lower().strip() in noise_words:
+            is_likely_noise = True
+            print(f"🚫 DETECTED COMMON NOISE PHRASE: '{transcribed_text}'")
+        
+        # Check metadata for quality issues
+        if hasattr(transcription, 'segments') and transcription.segments:
+            avg_no_speech = sum(seg.get('no_speech_prob', 0) for seg in transcription.segments) / len(transcription.segments)
+            avg_confidence = sum(seg.get('avg_logprob', 0) for seg in transcription.segments) / len(transcription.segments)
+            
+            print(f"📊 QUALITY METRICS:")
+            print(f"   Average No Speech Prob: {avg_no_speech:.4f}")
+            print(f"   Average Confidence: {avg_confidence:.4f}")
+            
+            if avg_no_speech > 0.5:
+                is_likely_noise = True
+                print(f"🚫 HIGH NO-SPEECH PROBABILITY: {avg_no_speech:.2f}")
+            
+            if avg_confidence < -1.0:
+                print(f"⚠️  LOW CONFIDENCE: {avg_confidence:.2f}")
+        
+        if is_likely_noise:
+            print("🚫 FILTERED AS NOISE")
+            return jsonify({
+                'success': False,
+                'text': '',
+                'error': 'No clear speech detected. Please speak louder and try again.'
+            })
+        
+        print(f"✅ TRANSCRIPTION ACCEPTED: '{transcribed_text}'")
+        print("="*60 + "\n")
+        
+        response_data = {
+            'success': True,
+            'text': transcribed_text
+        }
+        
+        print(f"📤 SENDING RESPONSE TO CLIENT:")
+        print(f"   {response_data}")
+        print("="*60 + "\n")
+        
+        return jsonify(response_data)
+        
+    except Exception as e:
+        print("="*60)
+        print(f"❌ TRANSCRIPTION ERROR:")
+        print(f"   {type(e).__name__}: {str(e)}")
+        import traceback
+        print(f"   Traceback:")
+        traceback.print_exc()
+        print("="*60 + "\n")
+        
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
 # ==================== STARTUP ====================
 if __name__ == '__main__':
     print("\n" + "="*60)
@@ -422,6 +584,7 @@ if __name__ == '__main__':
     
     print("🎯 Available endpoints:")
     print("   • POST /detect     - Object detection")
+    print("   • POST /transcribe - Voice to text transcription")
     print("   • GET  /health     - Health check")
     print("   • GET  /stats      - Statistics")
     print("   • POST /reset      - Reset cooldowns")
