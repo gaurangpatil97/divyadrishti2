@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Vibration, TouchableWithoutFeedback } from 'react-native';
 import { FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
 
-// ✅ CORRECT RELATIVE PATHS BASED ON YOUR FOLDER STRUCTURE
+// ✅ CORRECT RELATIVE PATHS
 import Netra from '../../components/Netra';
 import Mudra from '../../components/Mudra';
 import Marga from '../../components/Marga';
@@ -32,9 +32,10 @@ const FeatureCard = ({ title, subtitle, description, icon, isActive, onPress }: 
       <FontAwesome5 name={icon} size={32} color={isActive ? "#000000" : "#FFD700"} />
     </View>
     <View style={styles.textContainer}>
+      {/* ✅ FIX: Changed alignment and allowed wrapping so text doesn't get cut off */}
       <View style={styles.headerRow}>
         <Text style={[styles.cardTitle, isActive && styles.activeText]}>{title}</Text>
-        <Text style={[styles.cardSubtitle, isActive && styles.activeText]}>{subtitle}</Text>
+        <Text style={[styles.cardSubtitle, isActive && styles.activeText]} numberOfLines={1} ellipsizeMode="tail">{subtitle}</Text>
       </View>
       <Text style={[styles.cardDescription, isActive && styles.activeText]}>
         {description}
@@ -46,7 +47,7 @@ const FeatureCard = ({ title, subtitle, description, icon, isActive, onPress }: 
 // 3. MAIN HOME SCREEN
 export default function HomeScreen() {
   const [selectedMode, setSelectedMode] = useState<string | null>(null);
-  const [isScanning, setIsScanning] = useState(false); // Controls if we show the camera or the menu
+  const [isScanning, setIsScanning] = useState(false); 
   const [showVoiceAssistant, setShowVoiceAssistant] = useState(false);
   const [tapCount, setTapCount] = useState(0);
   const [tapTimeout, setTapTimeout] = useState<ReturnType<typeof setTimeout> | null>(null);
@@ -61,12 +62,10 @@ export default function HomeScreen() {
     setTapCount(newTapCount);
 
     if (newTapCount === 3) {
-      // Triple tap detected!
       Vibration.vibrate([0, 50, 100, 50]);
       setShowVoiceAssistant(true);
       setTapCount(0);
     } else {
-      // Reset after 500ms if no third tap
       const timeout = setTimeout(() => {
         setTapCount(0);
       }, 500);
@@ -76,13 +75,15 @@ export default function HomeScreen() {
 
   // --- VOICE ASSISTANT NAVIGATION ---
   const handleVoiceNavigate = (destination: string) => {
-    setSelectedMode(destination);
+    if (destination.includes('NETRA')) setSelectedMode('NETRA');
+    if (destination.includes('MUDRA')) setSelectedMode('MUDRA');
+    if (destination.includes('MARGA')) setSelectedMode('MARGA');
+    
     setShowVoiceAssistant(false);
     setIsScanning(true);
   };
 
   // --- LOGIC: SWITCHING COMPONENTS ---
-  // If we are scanning, show the specific component instead of the menu
   if (isScanning) {
     if (selectedMode === 'NETRA') return <Netra onBack={() => setIsScanning(false)} />;
     if (selectedMode === 'MUDRA') return <Mudra onBack={() => setIsScanning(false)} />;
@@ -96,17 +97,17 @@ export default function HomeScreen() {
       alert("Please select a mode first!");
       return;
     }
-    // This flips the switch to hide the menu and show the component
     setIsScanning(true); 
   };
 
   return (
     <TouchableWithoutFeedback onPress={handleTripleTap}>
-      <View style={{ flex: 1 }}>
+      <View style={{ flex: 1, backgroundColor: '#000000' }}>
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
           
           {/* HEADER */}
           <View style={styles.header}>
+            {/* ✅ FIX: Reduced font size slightly to fit better */}
             <Text style={styles.appName}>DIVYA<Text style={styles.appNameHighlight}>DRISHTI</Text></Text>
             <Text style={styles.tagline}>AI Vision Assistant</Text>
           </View>
@@ -171,23 +172,80 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000000' },
   contentContainer: { padding: 20, paddingTop: 60, paddingBottom: 40 },
   header: { marginBottom: 30 },
-  appName: { fontSize: 42, fontWeight: '800', color: '#FFFFFF', letterSpacing: 2 },
+  
+  appName: { 
+    fontSize: 40, // ✅ Reduced from 42
+    fontFamily: 'Atkinson-Bold', 
+    color: '#FFFFFF', 
+    letterSpacing: 1 // ✅ Reduced from 2
+  },
   appNameHighlight: { color: '#FFD700' },
-  tagline: { fontSize: 18, color: '#8E8E93', fontWeight: '500', marginTop: 5, letterSpacing: 1 },
-  sectionTitle: { fontSize: 14, color: '#8E8E93', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: 15, letterSpacing: 1 },
+  tagline: { 
+    fontSize: 18, 
+    color: '#8E8E93', 
+    fontFamily: 'Atkinson-Regular', 
+    marginTop: 5, 
+    letterSpacing: 1 
+  },
+  
+  sectionTitle: { 
+    fontSize: 14, 
+    color: '#8E8E93', 
+    fontFamily: 'Atkinson-Bold', 
+    textTransform: 'uppercase', 
+    marginBottom: 15, 
+    letterSpacing: 1 
+  },
+  
   grid: { gap: 20, marginBottom: 40 },
+  
   card: { flexDirection: 'row', backgroundColor: '#1C1C1E', borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255, 215, 0, 0.3)', padding: 20, alignItems: 'center' },
   activeCard: { backgroundColor: '#FFD700', borderColor: '#FFD700' },
+  
   iconContainer: { width: 60, height: 60, borderRadius: 30, backgroundColor: 'rgba(255, 215, 0, 0.1)', justifyContent: 'center', alignItems: 'center', marginRight: 20 },
   activeIconContainer: { backgroundColor: '#FFFFFF' },
-  textContainer: { flex: 1 },
-  headerRow: { flexDirection: 'row', alignItems: 'baseline', marginBottom: 6 },
-  cardTitle: { fontSize: 22, fontWeight: 'bold', color: '#FFD700', marginRight: 8 },
-  cardSubtitle: { fontSize: 16, color: '#8E8E93', fontWeight: '600' },
-  cardDescription: { fontSize: 15, color: '#CCCCCC', lineHeight: 22 },
+  
+  textContainer: { flex: 1, justifyContent: 'center' }, // ✅ Added justifyContent
+  
+  // ✅ FIX: Changed alignment and added wrap
+  headerRow: { 
+    flexDirection: 'row', 
+    alignItems: 'center', // Changed from 'baseline'
+    flexWrap: 'wrap',     // Allows wrapping if needed
+    marginBottom: 6 
+  },
+  
+  cardTitle: { 
+    fontSize: 22, 
+    fontFamily: 'Atkinson-Bold', 
+    color: '#FFD700', 
+    marginRight: 8 
+  },
+  cardSubtitle: { 
+    fontSize: 16, 
+    color: '#8E8E93', 
+    fontFamily: 'Atkinson-Bold',
+    flexShrink: 1 // ✅ Allows it to shrink if space is tight
+  },
+  cardDescription: { 
+    fontSize: 15, 
+    color: '#CCCCCC', 
+    lineHeight: 22, 
+    fontFamily: 'Atkinson-Regular',
+    marginTop: 4 // ✅ Added a little breathing room
+  },
+  
   activeText: { color: '#000000' },
+  
   footer: { marginTop: 10 },
   startButton: { backgroundColor: '#FFD700', height: 70, borderRadius: 12, justifyContent: 'center', alignItems: 'center', flexDirection: 'row' },
   disabledButton: { backgroundColor: '#333333' },
-  startButtonText: { fontSize: 20, fontWeight: '900', color: '#000000', textTransform: 'uppercase', letterSpacing: 1 },
+  
+  startButtonText: { 
+    fontSize: 20, 
+    fontFamily: 'Atkinson-Bold', 
+    color: '#000000', 
+    textTransform: 'uppercase', 
+    letterSpacing: 1 
+  },
 });

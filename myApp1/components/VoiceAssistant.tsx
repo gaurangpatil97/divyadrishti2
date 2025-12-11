@@ -261,10 +261,10 @@ export default function VoiceAssistant({ onNavigate, onClose }: VoiceAssistantPr
       } as any);
 
       console.log('📤 Sending audio to backend...');
-      console.log('Backend URL: http://192.168.29.172:5000/transcribe');
+      console.log('Backend URL: http://192.168.31.185:5000/transcribe');
 
       // Replace with your actual backend URL
-      const response = await fetch('http://192.168.29.172:5000/transcribe', {
+      const response = await fetch('http://192.168.31.185:5000/transcribe', {
         method: 'POST',
         body: formData,
         headers: {
@@ -443,7 +443,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontFamily: 'AtkinsonHyperlegible_700Bold',
     color: '#FFD700',
   },
   closeButton: {
@@ -473,7 +473,7 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: 18,
     color: '#CCCCCC',
-    fontWeight: '600',
+    fontFamily: 'AtkinsonHyperlegible_700Bold',
     textAlign: 'center',
   },
   textContainer: {
@@ -486,12 +486,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#8E8E93',
     marginBottom: 8,
-    fontWeight: '600',
+    fontFamily: 'AtkinsonHyperlegible_700Bold',
   },
   transcribedText: {
     fontSize: 18,
     color: '#FFFFFF',
     lineHeight: 24,
+    fontFamily: 'AtkinsonHyperlegible_400Regular',
   },
   suggestionsContainer: {
     marginTop: 20,
@@ -502,7 +503,7 @@ const styles = StyleSheet.create({
   suggestionsTitle: {
     fontSize: 16,
     color: '#FFD700',
-    fontWeight: 'bold',
+    fontFamily: 'AtkinsonHyperlegible_700Bold',
     marginBottom: 12,
   },
   suggestionText: {
@@ -510,12 +511,13 @@ const styles = StyleSheet.create({
     color: '#CCCCCC',
     marginVertical: 4,
     lineHeight: 20,
+    fontFamily: 'AtkinsonHyperlegible_400Regular',
   },
   instructionText: {
     fontSize: 13,
     color: '#8E8E93',
     marginTop: 12,
-    fontStyle: 'italic',
+    fontFamily: 'AtkinsonHyperlegible_400Regular',
     textAlign: 'center',
   },
 });

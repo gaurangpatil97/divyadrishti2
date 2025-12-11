@@ -1,78 +1,148 @@
-import React from 'react';
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
-import { FontAwesome5 } from '@expo/vector-icons';
+import React, { useState } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Vibration } from 'react-native';
+import { FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
+
+// ✅ IMPORT SUB-COMPONENTS
+import IndoorMarga from './IndoorMarga';
+import OutdoorMarga from './OutdoorMarga';
+
+const COLORS = {
+  bg: '#000000',
+  gold: '#FFD700',
+  grey: '#333333',
+  cardBg: '#1C1C1E',
+  white: '#FFFFFF'
+};
 
 interface Props {
   onBack: () => void;
 }
 
+// --- LOCAL COMPONENT: THE BIG CARD ---
+const MargaCard = ({ title, subtitle, icon, onPress }: { title: string, subtitle: string, icon: any, onPress: () => void }) => (
+  <TouchableOpacity 
+    style={styles.card} 
+    onPress={() => { Vibration.vibrate(10); onPress(); }}
+    activeOpacity={0.8}
+  >
+    <View style={styles.iconCircle}>
+       <FontAwesome5 name={icon} size={32} color={COLORS.gold} />
+    </View>
+    <View style={styles.textContainer}>
+       <Text style={styles.cardTitle}>{title}</Text>
+       <Text style={styles.cardSubtitle}>{subtitle}</Text>
+    </View>
+    <MaterialCommunityIcons name="chevron-right" size={30} color={COLORS.gold} />
+  </TouchableOpacity>
+);
+
+// --- MAIN COMPONENT ---
 export default function Marga({ onBack }: Props) {
+  const [subMode, setSubMode] = useState<'INDOOR' | 'OUTDOOR' | null>(null);
+
+  // 1. RENDER INDOOR MODE
+  if (subMode === 'INDOOR') {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => setSubMode(null)} style={styles.backButton}>
+             <FontAwesome5 name="chevron-left" size={24} color={COLORS.gold} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>INDOOR NAV</Text>
+        </View>
+        <IndoorMarga />
+      </View>
+    );
+  }
+
+  // 2. RENDER OUTDOOR MODE
+  if (subMode === 'OUTDOOR') {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => setSubMode(null)} style={styles.backButton}>
+             <FontAwesome5 name="chevron-left" size={24} color={COLORS.gold} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>OUTDOOR GPS</Text>
+        </View>
+        <OutdoorMarga />
+      </View>
+    );
+  }
+
+  // 3. RENDER MENU (DEFAULT)
   return (
     <View style={styles.container}>
       
-      {/* 1. HEADER ROW */}
+      {/* HEADER (Goes back to Home) */}
       <View style={styles.header}>
         <TouchableOpacity onPress={onBack} style={styles.backButton}>
-          <FontAwesome5 name="chevron-left" size={24} color="#FFD700" />
+           <FontAwesome5 name="chevron-left" size={24} color={COLORS.gold} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>MARGA MODE</Text>
-      </View>
-
-      {/* 2. MAIN CONTENT */}
-      <View style={styles.content}>
-        <Text style={styles.subtitle}>Indoor Navigation Active</Text>
-        
-        {/* Placeholder Box */}
-        <View style={styles.placeholderBox}>
-          <FontAwesome5 name="route" size={50} color="#333" style={{marginBottom: 20}} />
-          <Text style={styles.placeholderText}>[ Pathfinding Module Loading... ]</Text>
+        <View>
+            <Text style={styles.headerTitle}>MARGA</Text>
+            <Text style={styles.headerSub}>Select Navigation Type</Text>
         </View>
       </View>
+
+      <ScrollView contentContainerStyle={styles.menuContainer}>
+         
+         <Text style={styles.sectionLabel}>AVAILABLE MODES</Text>
+
+         {/* INDOOR CARD */}
+         <MargaCard 
+            title="INDOOR NAVIGATION" 
+            subtitle="Dead Reckoning (Steps + Compass)"
+            icon="dungeon"
+            onPress={() => setSubMode('INDOOR')}
+         />
+
+         {/* OUTDOOR CARD */}
+         <MargaCard 
+            title="OUTDOOR GPS" 
+            subtitle="Satellite Positioning & Address"
+            icon="satellite-dish"
+            onPress={() => setSubMode('OUTDOOR')}
+         />
+
+      </ScrollView>
 
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#000000',
-  },
-  // HEADER STYLES
+  container: { flex: 1, backgroundColor: COLORS.bg },
+  
+  // HEADER
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingTop: 60, 
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    width: '100%', flexDirection: 'row', alignItems: 'center', paddingTop: 50, paddingHorizontal: 20, paddingBottom: 20,
+    borderBottomWidth: 1, borderBottomColor: COLORS.grey, backgroundColor: COLORS.bg, zIndex: 10
   },
-  backButton: {
-    padding: 10,
-    marginRight: 15,
-    borderWidth: 1,
-    borderColor: '#333',
-    borderRadius: 8,
-    backgroundColor: '#1C1C1E',
+  backButton: { 
+    padding: 10, marginRight: 15, borderWidth: 1, borderColor: COLORS.grey, borderRadius: 8, backgroundColor: '#1C1C1E' 
   },
-  headerTitle: {
-    color: '#FFD700',
-    fontSize: 24,
-    fontWeight: 'bold',
-    letterSpacing: 1,
-  },
-  // BODY STYLES
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+  headerTitle: { color: COLORS.gold, fontSize: 22, fontFamily: 'Atkinson-Bold', letterSpacing: 1 },
+  headerSub: { color: '#888', fontSize: 12, fontFamily: 'Atkinson-Regular' },
+
+  // MENU
+  menuContainer: { padding: 20, paddingTop: 30 },
+  sectionLabel: { color: '#888', fontFamily: 'Atkinson-Bold', fontSize: 12, marginBottom: 15, letterSpacing: 1 },
+
+  // CARD STYLES
+  card: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: COLORS.cardBg,
+    borderRadius: 16,
     padding: 20,
+    marginBottom: 20,
+    borderWidth: 1, borderColor: 'rgba(255, 215, 0, 0.3)'
   },
-  subtitle: { fontSize: 18, color: '#FFFFFF', marginBottom: 40 },
-  placeholderBox: {
-    width: '100%', height: 300, borderWidth: 2, borderColor: '#333',
-    justifyContent: 'center', alignItems: 'center', marginBottom: 40, borderRadius: 12,
+  iconCircle: {
+     width: 60, height: 60, borderRadius: 30, backgroundColor: 'rgba(255, 215, 0, 0.1)',
+     justifyContent: 'center', alignItems: 'center', marginRight: 20
   },
-  placeholderText: { color: '#666' },
+  textContainer: { flex: 1 },
+  cardTitle: { color: COLORS.gold, fontFamily: 'Atkinson-Bold', fontSize: 18, marginBottom: 4 },
+  cardSubtitle: { color: '#888', fontFamily: 'Atkinson-Regular', fontSize: 12 },
 });

@@ -2,15 +2,15 @@ import React from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Vibration } from 'react-native';
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
 
-// 1. DEFINE THE TYPES (Fixes the red errors)
+// 1. DEFINE THE TYPES
 interface ProfileOptionProps {
-  icon: any; // Allows any icon name from FontAwesome
+  icon: any; 
   label: string;
   isDestructive?: boolean;
   onPress?: () => void;
 }
 
-// 2. REUSABLE COMPONENT WITH TYPES APPLIED
+// 2. REUSABLE COMPONENT
 const ProfileOption = ({ icon, label, isDestructive = false, onPress }: ProfileOptionProps) => (
   <TouchableOpacity 
     style={[
@@ -18,7 +18,7 @@ const ProfileOption = ({ icon, label, isDestructive = false, onPress }: ProfileO
       isDestructive && styles.destructiveCard 
     ]} 
     onPress={() => {
-      Vibration.vibrate(10); // Haptic feedback
+      Vibration.vibrate(10); 
       if(onPress) onPress();
     }}
     activeOpacity={0.7}
@@ -47,7 +47,6 @@ export default function ProfileScreen() {
       {/* HEADER SECTION */}
       <View style={styles.header}>
         <View style={styles.avatarContainer}>
-          {/* User Icon */}
           <FontAwesome name="user" size={60} color="#000" />
         </View>
         <Text style={styles.name}>Gaurang Patil</Text>
@@ -81,11 +80,11 @@ export default function ProfileScreen() {
   );
 }
 
-// 4. STYLES (Premium Gold & Black Theme)
+// 4. STYLES (Fixed Fonts)
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000', // True Black
+    backgroundColor: '#000000', 
   },
   contentContainer: {
     padding: 24,
@@ -101,16 +100,16 @@ const styles = StyleSheet.create({
     width: 110,
     height: 110,
     borderRadius: 55,
-    backgroundColor: '#FFD700', // Gold Background
+    backgroundColor: '#FFD700', 
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 12,
     borderWidth: 2,
-    borderColor: '#FFF', // White ring for 3D pop
+    borderColor: '#FFF', 
   },
   name: {
     fontSize: 30,
-    fontWeight: '700',
+    fontFamily: 'Atkinson-Bold', // ✅ FIXED
     color: '#FFFFFF',
     marginBottom: 4,
     letterSpacing: 0.5,
@@ -118,14 +117,14 @@ const styles = StyleSheet.create({
   role: {
     fontSize: 16,
     color: '#8E8E93', 
-    fontWeight: '500',
+    fontFamily: 'Atkinson-Regular', // ✅ FIXED
   },
 
   // SECTIONS
   sectionTitle: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#8E8E93', // iOS Gray
+    fontFamily: 'Atkinson-Bold', // ✅ FIXED
+    color: '#8E8E93', 
     textTransform: 'uppercase',
     marginBottom: 12,
     marginLeft: 4,
@@ -133,7 +132,7 @@ const styles = StyleSheet.create({
   },
   
   optionsWrapper: {
-    gap: 16, // Space between cards
+    gap: 16, 
   },
 
   // CARD STYLE
@@ -141,17 +140,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 18,
-    backgroundColor: '#1C1C1E', // Dark Card Grey
+    backgroundColor: '#1C1C1E', 
     borderRadius: 16,
     borderWidth: 1,           
-    borderColor: 'rgba(255, 215, 0, 0.5)', // 50% Gold Border
+    borderColor: 'rgba(255, 215, 0, 0.5)', 
   },
 
   iconContainer: {
     width: 40,
     height: 40,
     borderRadius: 20, 
-    backgroundColor: 'rgba(255, 215, 0, 0.1)', // Gold Tint
+    backgroundColor: 'rgba(255, 215, 0, 0.1)', 
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
@@ -159,7 +158,7 @@ const styles = StyleSheet.create({
   optionText: {
     flex: 1,
     fontSize: 18,
-    fontWeight: '600',
+    fontFamily: 'Atkinson-Bold', // ✅ FIXED
     color: '#FFFFFF',
   },
 
@@ -167,14 +166,14 @@ const styles = StyleSheet.create({
   destructiveCard: {
     backgroundColor: '#1C1C1E',
     borderWidth: 1,
-    borderColor: 'rgba(255, 59, 48, 0.5)', // Red Border
+    borderColor: 'rgba(255, 59, 48, 0.5)', 
     marginTop: 10,
   },
   destructiveIconContainer: {
-    backgroundColor: 'rgba(255, 59, 48, 0.1)', // Red Tint
+    backgroundColor: 'rgba(255, 59, 48, 0.1)', 
   },
   destructiveText: {
-    color: '#FF3B30', // Red Text
+    color: '#FF3B30', 
   },
 
   spacer: {
@@ -184,6 +183,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#444',
     fontSize: 12,
+    fontFamily: 'Atkinson-Regular', // ✅ FIXED
     marginTop: 20,
     marginBottom: 10,
   },
