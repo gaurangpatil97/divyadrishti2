@@ -1,6 +1,8 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { FontAwesome } from '@expo/vector-icons'; 
+import { FontAwesome5 } from '@expo/vector-icons';
+import { View, StyleSheet } from 'react-native';
+import { COLORS, TYPOGRAPHY, RADIUS, SPACING, SHADOWS } from '../../constants/designSystem';
 
 export default function TabLayout() {
   return (
@@ -8,28 +10,40 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-            backgroundColor: '#000000',
-            height: 80,
-            borderTopColor: '#FFD700',
-            borderTopWidth: 2,
+          backgroundColor: COLORS.background,
+          height: 90,
+          borderTopWidth: 0,
+          paddingBottom: 20,
+          paddingTop: 10,
+          position: 'absolute',
+          borderTopColor: 'transparent',
         },
-        tabBarActiveTintColor: '#FFD700',
-        tabBarInactiveTintColor: '#666666',
-        tabBarLabelStyle: {
-            fontSize: 16,
-            // REMOVED: fontWeight: 'bold', 
-            // ADDED:
-            fontFamily: 'Atkinson-Bold', 
-            marginBottom: 10,
-        }
+        tabBarActiveTintColor: COLORS.background,
+        tabBarInactiveTintColor: COLORS.textSecondary,
+        tabBarShowLabel: false,
+        tabBarBackground: () => (
+          <View style={styles.tabBarContainer}>
+            <View style={styles.tabBarPill} />
+          </View>
+        ),
       }}>
       
       <Tabs.Screen
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color }: { color: string }) => (
-            <FontAwesome size={28} name="eye" color={color} />
+          tabBarIcon: ({ focused }: { focused: boolean }) => (
+            <View style={[
+              styles.iconPill,
+              focused && styles.iconPillActive
+            ]}>
+              <FontAwesome5 
+                size={24} 
+                name="home" 
+                color={focused ? COLORS.background : COLORS.textSecondary}
+                solid={focused}
+              />
+            </View>
           ),
         }}
       />
@@ -38,11 +52,52 @@ export default function TabLayout() {
         name="profile"
         options={{
           title: 'Profile',
-          tabBarIcon: ({ color }: { color: string }) => (
-            <FontAwesome size={28} name="user" color={color} />
+          tabBarIcon: ({ focused }: { focused: boolean }) => (
+            <View style={[
+              styles.iconPill,
+              focused && styles.iconPillActive
+            ]}>
+              <FontAwesome5 
+                size={24} 
+                name="user" 
+                color={focused ? COLORS.background : COLORS.textSecondary}
+                solid={focused}
+              />
+            </View>
           ),
         }}
       />
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  tabBarContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  tabBarPill: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    right: 20,
+    backgroundColor: COLORS.surface,
+    height: 70,
+    borderRadius: 35,
+    ...SHADOWS.large,
+  },
+  iconPill: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'transparent',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  iconPillActive: {
+    backgroundColor: COLORS.primary,
+    ...SHADOWS.medium,
+  },
+});
