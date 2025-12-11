@@ -572,6 +572,8 @@ interface ServerResponse {
   frameHeight: number;
 }
 
+import { BACKEND_IP } from '../config/env';
+
 interface Props {
   onBack: () => void;
 }
@@ -580,7 +582,7 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 // --- CONFIG ---
 const CONFIG = {
-  SERVER_URL: "http://192.168.31.185:5000/detect",
+  SERVER_URL: `http://${BACKEND_IP}:5000/detect`,
   FRAME_RATE: 10,
   REQUEST_TIMEOUT: 5000,
   RECONNECT_DELAY: 1000,

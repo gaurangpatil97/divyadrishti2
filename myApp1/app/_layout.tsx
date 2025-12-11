@@ -7,6 +7,8 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import GlobalVoiceAssistantWrapper from '../components/GlobalVoiceAssistantWrapper';
+import { NavigationProvider } from '../contexts/NavigationContext';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -35,11 +37,15 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-      </Stack>
-      <StatusBar style="auto" />
+      <NavigationProvider>
+        <GlobalVoiceAssistantWrapper>
+          <Stack>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+          </Stack>
+          <StatusBar style="auto" />
+        </GlobalVoiceAssistantWrapper>
+      </NavigationProvider>
     </ThemeProvider>
   );
 }

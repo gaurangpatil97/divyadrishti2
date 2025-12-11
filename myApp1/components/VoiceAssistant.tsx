@@ -11,6 +11,7 @@ import {
 import { FontAwesome5 } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
 import * as Speech from 'expo-speech';
+import { BACKEND_IP } from '../config/env';
 
 interface VoiceAssistantProps {
   onNavigate: (destination: string) => void;
@@ -261,10 +262,9 @@ export default function VoiceAssistant({ onNavigate, onClose }: VoiceAssistantPr
       } as any);
 
       console.log('📤 Sending audio to backend...');
-      console.log('Backend URL: http://192.168.31.185:5000/transcribe');
+      console.log('Backend URL:', `http://${BACKEND_IP}:5000/transcribe`);
 
-      // Replace with your actual backend URL
-      const response = await fetch('http://192.168.31.185:5000/transcribe', {
+      const response = await fetch(`http://${BACKEND_IP}:5000/transcribe`, {
         method: 'POST',
         body: formData,
         headers: {
