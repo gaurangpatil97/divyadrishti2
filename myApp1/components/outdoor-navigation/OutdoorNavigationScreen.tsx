@@ -247,7 +247,7 @@ export default function OutdoorNavigationScreen({ route, startLocation, endLocat
       </View>
 
       {showMap ? (
-        /* Map View */
+        /* Map View with Overlay */
         <View style={styles.mapContainer}>
           <MapView
             ref={mapRef}
@@ -290,13 +290,71 @@ export default function OutdoorNavigationScreen({ route, startLocation, endLocat
             ))}
           </MapView>
 
+          {/* Navigation Info Overlay on Map */}
+          <View style={styles.mapOverlay}>
+            {/* Current Instruction Card */}
+            <View style={styles.instructionCard}>
+              <View style={styles.instructionHeader}>
+                <FontAwesome5 
+                  name={phase === 'turn' ? 'exchange-alt' : 'walking'} 
+                  size={24} 
+                  color={COLORS.primary} 
+                />
+                <Text style={styles.stepCounter}>
+                  Step {currentStepIndex + 1} of {route.steps.length}
+                </Text>
+              </View>
+              <Text style={styles.instructionText}>{currentStep.instruction}</Text>
+              
+              {/* Progress Bar */}
+              <View style={styles.progressContainer}>
+                <View style={styles.progressBar}>
+                  <View style={[styles.progressFill, { width: `${progressPercent}%` }]} />
+                </View>
+                <Text style={styles.progressText}>
+                  {stepsTaken} / {currentStep.stepCount} steps
+                </Text>
+              </View>
+              
+              <View style={styles.distanceInfo}>
+                <Text style={styles.distanceText}>
+                  {currentStep.distance.toFixed(0)}m remaining
+                </Text>
+                <Text style={styles.phaseText}>
+                  {phase === 'walk' ? '🚶 Walking' : '↪️ Turning'}
+                </Text>
+              </View>
+            </View>
+
+            {/* Quick Action Buttons */}
+            <View style={styles.quickActions}>
+              <TouchableOpacity 
+                style={styles.actionButton}
+                onPress={handleRepeat}
+              >
+                <FontAwesome5 name="redo" size={20} color={COLORS.textPrimary} />
+                <Text style={styles.actionButtonText}>Repeat</Text>
+              </TouchableOpacity>
+              
+              {!isNavigating && (
+                <TouchableOpacity 
+                  style={[styles.actionButton, styles.startButton]}
+                  onPress={handleStart}
+                >
+                  <FontAwesome5 name="play" size={20} color={COLORS.background} />
+                  <Text style={[styles.actionButtonText, styles.startButtonText]}>Start</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+
           {/* Center on User Button */}
           <TouchableOpacity style={styles.centerButton} onPress={centerMapOnUser}>
             <FontAwesome5 name="location-arrow" size={20} color={COLORS.background} />
           </TouchableOpacity>
         </View>
       ) : (
-        /* Instruction View */
+        /* Full Instruction View */
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
@@ -459,6 +517,91 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     ...SHADOWS.glow,
+  },
+  mapOverlay: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+    right: 20,
+    gap: SPACING.md,
+  },
+  instructionCard: {
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.lg,
+    padding: SPACING.lg,
+    borderWidth: 2,
+    borderColor: COLORS.primary,
+    ...SHADOWS.glow,
+  },
+  instructionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+    marginBottom: SPACING.sm,
+  },
+  stepCounter: {
+    color: COLORS.textSecondary,
+    fontSize: TYPOGRAPHY.small,
+    fontFamily: TYPOGRAPHY.fontBold,
+    flex: 1,
+  },
+  progressContainer: {
+    marginTop: SPACING.md,
+    gap: SPACING.xs,
+  },
+  progressBar: {
+    height: 8,
+    backgroundColor: COLORS.border,
+    borderRadius: RADIUS.sm,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: COLORS.primary,
+  },
+  progressText: {
+    color: COLORS.textSecondary,
+    fontSize: TYPOGRAPHY.small,
+    fontFamily: TYPOGRAPHY.fontRegular,
+    textAlign: 'center',
+  },
+  distanceInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: SPACING.sm,
+  },
+  distanceText: {
+    color: COLORS.textPrimary,
+    fontSize: TYPOGRAPHY.base,
+    fontFamily: TYPOGRAPHY.fontBold,
+  },
+  quickActions: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+  },
+  actionButton: {
+    flex: 1,
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.md,
+    padding: SPACING.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: SPACING.xs,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  actionButtonText: {
+    color: COLORS.textPrimary,
+    fontSize: TYPOGRAPHY.small,
+    fontFamily: TYPOGRAPHY.fontBold,
+  },
+  startButton: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  startButtonText: {
+    color: COLORS.background,
   },
   waypointMarker: {
     width: 30,

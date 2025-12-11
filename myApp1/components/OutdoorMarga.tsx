@@ -218,28 +218,24 @@ export default function OutdoorMarga({ onBack }: Props): React.JSX.Element {
     try {
       setIsProcessing(true);
       
-      // Use Photon API for autocomplete suggestions (similar to Ola Maps)
+      // Use Nominatim (OpenStreetMap) Autocomplete
       const response = await fetch(
-        `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5`,
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`,
         {
           headers: {
-            'User-Agent': 'DivyaDrishti-App/1.0',
+            'User-Agent': 'DivyaDrishti/1.0',
           },
         }
       );
       const data = await response.json();
       
-      if (data.features && data.features.length > 0) {
-        const results = data.features.map((feature: any) => ({
-          name: feature.properties.name || feature.properties.street || 'Unknown',
-          address: [
-            feature.properties.street,
-            feature.properties.city,
-            feature.properties.state,
-            feature.properties.country
-          ].filter(Boolean).join(', '),
-          latitude: feature.geometry.coordinates[1],
-          longitude: feature.geometry.coordinates[0],
+      if (data && data.length > 0) {
+        const results = data.map((item: any) => ({
+          name: item.display_name.split(',')[0],
+          address: item.display_name,
+          placeId: item.place_id,
+          latitude: parseFloat(item.lat),
+          longitude: parseFloat(item.lon),
         }));
         
         setSearchResults(results);
@@ -303,97 +299,131 @@ export default function OutdoorMarga({ onBack }: Props): React.JSX.Element {
 
   const getRoute = async (start: any, end: any) => {
     try {
-      // Use OSRM (Open Source Routing Machine) for pedestrian routing
-      const response = await fetch(
-        `https://router.project-osrm.org/route/v1/foot/${start.longitude},${start.latitude};${end.longitude},${end.latitude}?steps=true&geometries=geojson&overview=full`,
-        {
-          headers: {
-            'User-Agent': 'DivyaDrishti-App/1.0',
-            'Accept': 'application/json',
+      console.log('🗺️ Requesting route from OSRM...');
+      console.log(`Start: ${start.latitude}, ${start.longitude}`);
+      console.log(`End: ${end.latitude}, ${end.longitude}`);
+      
+      // Use OSRM (OpenStreetMap Routing Machine)
+      const url = `https://router.project-osrm.org/route/v1/foot/${start.longitude},${start.latitude};${end.longitude},${end.latitude}?overview=full&steps=true&geometries=polyline`;
+      console.log('🗺️ OSRM URL:', url);
+      
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'DivyaDrishti/1.0',
+        },
+      });
+      
+      console.log('🗺️ Response status:', response.status);
+      const responseText = await response.text();
+      console.log('🗺️ Response text (first 200 chars):', responseText.substring(0, 200));
+      
+      // Check if response is HTML (error)
+      if (responseText.trim().startsWith('<')) {
+        console.error('❌ OSRM returned HTML instead of JSON');
+        Speech.speak('Navigation service is temporarily unavailable. Please try again later.');
+        return;
+      }
+      
+      const data = JSON.parse(responseText);
+      console.log('🗺️ OSRM Response:', JSON.stringify(data, null, 2).substring(0, 500));
+      
+      if (data.code !== 'Ok' || !data.routes || data.routes.length === 0) {
+        console.error('❌ OSRM error:', data.message || 'No routes found');
+        Speech.speak('Could not find a walking route. Please try different locations.');
+        return;
+      }
+      
+      const route = data.routes[0];
+      
+      // Decode polyline to coordinates
+      const coordinates = route.geometry 
+        ? decodePolyline(route.geometry)
+        : [];
+      
+      console.log(`🗺️ Decoded ${coordinates.length} coordinates`);
+
+      // Convert OSRM steps to our format
+      const steps = route.legs[0].steps.map((step: any) => {
+        const stepCount = Math.round(step.distance / 0.75); // 0.75m per step
+        
+        return {
+          instruction: step.maneuver.type === 'depart' ? 'Start walking' : 
+                      step.maneuver.type === 'arrive' ? 'You have arrived' :
+                      step.name || 'Continue',
+          distance: step.distance,
+          stepCount,
+          maneuver: {
+            type: step.maneuver.type,
+            modifier: step.maneuver.modifier || '',
           },
+          location: {
+            latitude: step.maneuver.location[1],
+            longitude: step.maneuver.location[0],
+          },
+        };
+      });
+
+      setRouteData({
+        coordinates,
+        steps,
+        totalDistance: route.distance,
+        totalDuration: route.duration,
+      });
+
+      Speech.speak(
+        `Route ready. ${steps.length} instructions. Total distance ${(route.distance / 1000).toFixed(1)} kilometers. Ready to start?`,
+        {
+          rate: 0.9,
+          onDone: () => {
+            setMode('navigating');
+          }
         }
       );
-      
-      const text = await response.text();
-      console.log('OSRM Response:', text);
-      
-      const data = JSON.parse(text);
-      
-      if (data.code === 'Ok' && data.routes && data.routes.length > 0) {
-        const route = data.routes[0];
-        
-        // Convert route to our format
-        const coordinates = route.geometry.coordinates.map((coord: number[]) => ({
-          latitude: coord[1],
-          longitude: coord[0],
-        }));
-
-        // Convert steps with meters to steps
-        const steps = route.legs[0].steps.map((step: any) => {
-          const stepCount = Math.round(step.distance / 0.75); // 0.75m per step
-          const instruction = formatInstruction(step);
-          
-          return {
-            instruction,
-            distance: step.distance,
-            stepCount,
-            maneuver: step.maneuver,
-            location: {
-              latitude: step.maneuver.location[1],
-              longitude: step.maneuver.location[0],
-            },
-          };
-        });
-
-        setRouteData({
-          coordinates,
-          steps,
-          totalDistance: route.distance,
-          totalDuration: route.duration,
-        });
-
-        Speech.speak(
-          `Route ready. ${steps.length} steps. Total distance ${(route.distance / 1000).toFixed(1)} kilometers. Ready to start?`,
-          {
-            rate: 0.9,
-            onDone: () => {
-              setMode('navigating');
-            }
-          }
-        );
-      } else {
-        Speech.speak('Sorry, could not find a route. Please try again.');
-      }
     } catch (error) {
-      console.error('Routing error:', error);
-      Speech.speak('There was an error calculating the route.');
+      console.error('❌ Routing error:', error);
+      Speech.speak('There was an error calculating the route. Please try again.');
     }
   };
 
-  const formatInstruction = (step: any) => {
-    const { maneuver, name } = step;
-    const distance = Math.round(step.distance / 0.75); // Convert to steps
-    
-    let instruction = '';
-    
-    switch (maneuver.type) {
-      case 'depart':
-        instruction = `Start walking ${distance} steps`;
-        break;
-      case 'turn':
-        const direction = maneuver.modifier || '';
-        instruction = `Walk ${distance} steps, then turn ${direction}`;
-        if (name) instruction += ` onto ${name}`;
-        break;
-      case 'arrive':
-        instruction = `Walk ${distance} steps to arrive at your destination`;
-        break;
-      default:
-        instruction = `Continue ${distance} steps`;
-        if (name) instruction += ` on ${name}`;
+  const decodePolyline = (encoded: string) => {
+    const coordinates: { latitude: number; longitude: number }[] = [];
+    let index = 0;
+    let lat = 0;
+    let lng = 0;
+
+    while (index < encoded.length) {
+      let shift = 0;
+      let result = 0;
+      let byte;
+
+      do {
+        byte = encoded.charCodeAt(index++) - 63;
+        result |= (byte & 0x1f) << shift;
+        shift += 5;
+      } while (byte >= 0x20);
+
+      const deltaLat = result & 1 ? ~(result >> 1) : result >> 1;
+      lat += deltaLat;
+
+      shift = 0;
+      result = 0;
+
+      do {
+        byte = encoded.charCodeAt(index++) - 63;
+        result |= (byte & 0x1f) << shift;
+        shift += 5;
+      } while (byte >= 0x20);
+
+      const deltaLng = result & 1 ? ~(result >> 1) : result >> 1;
+      lng += deltaLng;
+
+      coordinates.push({
+        latitude: lat / 1e5,
+        longitude: lng / 1e5,
+      });
     }
-    
-    return instruction;
+
+    return coordinates;
   };
 
   const handleCancelNavigation = () => {

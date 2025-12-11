@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { View, Vibration, TouchableWithoutFeedback } from 'react-native';
+import { View, Vibration, TouchableWithoutFeedback, AppState } from 'react-native';
 import VoiceAssistant from './VoiceAssistant';
 import { useRouter } from 'expo-router';
-import { useNavigation } from '../contexts/NavigationContext';
 
 interface GlobalVoiceAssistantWrapperProps {
   children: React.ReactNode;
@@ -14,7 +13,6 @@ export default function GlobalVoiceAssistantWrapper({ children }: GlobalVoiceAss
   const [tapTimeout, setTapTimeout] = useState<ReturnType<typeof setTimeout> | null>(null);
   
   const router = useRouter();
-  const { triggerNavigation } = useNavigation();
 
   // Triple tap detection
   const handleTripleTap = () => {
@@ -39,20 +37,19 @@ export default function GlobalVoiceAssistantWrapper({ children }: GlobalVoiceAss
     }
   };
 
-  // Voice navigation handler
+  // Voice navigation handler - directly navigate
   const handleVoiceNavigate = (destination: string) => {
+    console.log('🌍 Global wrapper handleVoiceNavigate called with:', destination);
     setShowVoiceAssistant(false);
     
-    // Navigate based on destination
-    if (destination === 'HOME') {
-      // Just go to home, no mode selection
-      router.push('/(tabs)');
-    } else {
-      // For Netra, Mudra, Marga - navigate to home and trigger the mode
-      router.push('/(tabs)');
-      setTimeout(() => {
-        triggerNavigation(destination);
-      }, 100);
+    // Force navigation to home first
+    router.push('/(tabs)');
+    
+    // Then emit the navigation command via a global state manager
+    // For now, we'll use a simple approach: store in global object
+    if (typeof global !== 'undefined') {
+      (global as any).pendingVoiceNavigation = destination;
+      console.log('🌍 Set global.pendingVoiceNavigation to:', destination);
     }
   };
 
