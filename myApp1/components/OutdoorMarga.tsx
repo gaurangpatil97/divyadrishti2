@@ -299,36 +299,28 @@ export default function OutdoorMarga({ onBack }: Props): React.JSX.Element {
 
   const getRoute = async (start: any, end: any) => {
     try {
-      console.log('🗺️ Requesting route from OSRM...');
+      console.log('🗺️ Requesting route from MapBox...');
       console.log(`Start: ${start.latitude}, ${start.longitude}`);
       console.log(`End: ${end.latitude}, ${end.longitude}`);
       
-      // Use OSRM (OpenStreetMap Routing Machine)
-      const url = `https://router.project-osrm.org/route/v1/foot/${start.longitude},${start.latitude};${end.longitude},${end.latitude}?overview=full&steps=true&geometries=polyline`;
-      console.log('🗺️ OSRM URL:', url);
+      // MapBox API key - free tier: 100,000 requests/month
+      const MAPBOX_TOKEN = 'pk.eyJ1IjoidGFudmlwYXRpbDIyIiwiYSI6ImNtajF5eGljbzBudWkzZXNmdnlhOGt2NzAifQ.H-ZymAcnGHM1d4DetPK5Wg';
       
-      const response = await fetch(url, {
-        headers: {
-          'User-Agent': 'DivyaDrishti/1.0',
-        },
-      });
+      // Use MapBox Directions API
+      const url = `https://api.mapbox.com/directions/v5/mapbox/walking/${start.longitude},${start.latitude};${end.longitude},${end.latitude}?geometries=polyline&steps=true&access_token=${MAPBOX_TOKEN}`;
+      console.log('🗺️ MapBox URL:', url);
+      
+      const response = await fetch(url);
       
       console.log('🗺️ Response status:', response.status);
       const responseText = await response.text();
       console.log('🗺️ Response text (first 200 chars):', responseText.substring(0, 200));
       
-      // Check if response is HTML (error)
-      if (responseText.trim().startsWith('<')) {
-        console.error('❌ OSRM returned HTML instead of JSON');
-        Speech.speak('Navigation service is temporarily unavailable. Please try again later.');
-        return;
-      }
-      
       const data = JSON.parse(responseText);
-      console.log('🗺️ OSRM Response:', JSON.stringify(data, null, 2).substring(0, 500));
+      console.log('🗺️ MapBox Response:', JSON.stringify(data, null, 2).substring(0, 500));
       
-      if (data.code !== 'Ok' || !data.routes || data.routes.length === 0) {
-        console.error('❌ OSRM error:', data.message || 'No routes found');
+      if (!data.routes || data.routes.length === 0) {
+        console.error('❌ MapBox error:', data.message || 'No routes found');
         Speech.speak('Could not find a walking route. Please try different locations.');
         return;
       }
@@ -342,18 +334,16 @@ export default function OutdoorMarga({ onBack }: Props): React.JSX.Element {
       
       console.log(`🗺️ Decoded ${coordinates.length} coordinates`);
 
-      // Convert OSRM steps to our format
+      // Convert MapBox steps to our format
       const steps = route.legs[0].steps.map((step: any) => {
         const stepCount = Math.round(step.distance / 0.75); // 0.75m per step
         
         return {
-          instruction: step.maneuver.type === 'depart' ? 'Start walking' : 
-                      step.maneuver.type === 'arrive' ? 'You have arrived' :
-                      step.name || 'Continue',
+          instruction: step.maneuver.instruction || 'Continue',
           distance: step.distance,
           stepCount,
           maneuver: {
-            type: step.maneuver.type,
+            type: step.maneuver.type || 'continue',
             modifier: step.maneuver.modifier || '',
           },
           location: {

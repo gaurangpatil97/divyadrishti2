@@ -247,7 +247,7 @@ export default function OutdoorNavigationScreen({ route, startLocation, endLocat
       </View>
 
       {showMap ? (
-        /* Map View with Overlay */
+        /* Map View - Clean without overlay */
         <View style={styles.mapContainer}>
           <MapView
             ref={mapRef}
@@ -289,64 +289,6 @@ export default function OutdoorNavigationScreen({ route, startLocation, endLocat
               </Marker>
             ))}
           </MapView>
-
-          {/* Navigation Info Overlay on Map */}
-          <View style={styles.mapOverlay}>
-            {/* Current Instruction Card */}
-            <View style={styles.instructionCard}>
-              <View style={styles.instructionHeader}>
-                <FontAwesome5 
-                  name={phase === 'turn' ? 'exchange-alt' : 'walking'} 
-                  size={24} 
-                  color={COLORS.primary} 
-                />
-                <Text style={styles.stepCounter}>
-                  Step {currentStepIndex + 1} of {route.steps.length}
-                </Text>
-              </View>
-              <Text style={styles.instructionText}>{currentStep.instruction}</Text>
-              
-              {/* Progress Bar */}
-              <View style={styles.progressContainer}>
-                <View style={styles.progressBar}>
-                  <View style={[styles.progressFill, { width: `${progressPercent}%` }]} />
-                </View>
-                <Text style={styles.progressText}>
-                  {stepsTaken} / {currentStep.stepCount} steps
-                </Text>
-              </View>
-              
-              <View style={styles.distanceInfo}>
-                <Text style={styles.distanceText}>
-                  {currentStep.distance.toFixed(0)}m remaining
-                </Text>
-                <Text style={styles.phaseText}>
-                  {phase === 'walk' ? '🚶 Walking' : '↪️ Turning'}
-                </Text>
-              </View>
-            </View>
-
-            {/* Quick Action Buttons */}
-            <View style={styles.quickActions}>
-              <TouchableOpacity 
-                style={styles.actionButton}
-                onPress={handleRepeat}
-              >
-                <FontAwesome5 name="redo" size={20} color={COLORS.textPrimary} />
-                <Text style={styles.actionButtonText}>Repeat</Text>
-              </TouchableOpacity>
-              
-              {!isNavigating && (
-                <TouchableOpacity 
-                  style={[styles.actionButton, styles.startButton]}
-                  onPress={handleStart}
-                >
-                  <FontAwesome5 name="play" size={20} color={COLORS.background} />
-                  <Text style={[styles.actionButtonText, styles.startButtonText]}>Start</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          </View>
 
           {/* Center on User Button */}
           <TouchableOpacity style={styles.centerButton} onPress={centerMapOnUser}>
