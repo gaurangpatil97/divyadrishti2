@@ -545,6 +545,7 @@ import {
 import { CameraView, useCameraPermissions } from "expo-camera";
 import * as Speech from "expo-speech";
 import { Feather, FontAwesome5 } from "@expo/vector-icons";
+import { COLORS as DESIGN_COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '../constants/designSystem';
 
 // --- TYPES ---
 interface BoundingBoxCoords {
@@ -593,16 +594,16 @@ const CONFIG = {
 
 // --- THEME ---
 const COLORS = {
-  bg: "#000000",
-  primary: "#FFD700",
-  secondary: "#FFFFFF",
+  bg: DESIGN_COLORS.background,
+  primary: DESIGN_COLORS.primary,
+  secondary: DESIGN_COLORS.textPrimary,
   danger: "#FF3B30",
-  success: "#00FF00",
-  cardBg: "#1C1C1E",
-  border: "rgba(255, 215, 0, 0.5)",
-  dangerBorder: "rgba(255, 59, 48, 0.5)",
-  overlay: "rgba(0, 0, 0, 0.6)",
-  subtle: "#8E8E93",
+  success: "#34C759",
+  cardBg: DESIGN_COLORS.surface,
+  border: DESIGN_COLORS.border,
+  dangerBorder: "rgba(255, 59, 48, 0.3)",
+  overlay: "rgba(0, 0, 0, 0.75)",
+  subtle: DESIGN_COLORS.textSecondary,
 };
 
 export default function Netra({ onBack }: Props) {
@@ -977,8 +978,10 @@ export default function Netra({ onBack }: Props) {
         <FlatList
           data={detections}
           keyExtractor={(item, idx) => idx.toString()}
-          contentContainerStyle={{ paddingBottom: 20 }}
+          contentContainerStyle={{ paddingBottom: 120, flexGrow: 1 }}
           showsVerticalScrollIndicator={false}
+          nestedScrollEnabled={true}
+          scrollEnabled={true}
           renderItem={({ item }) => (
             <View
               style={[styles.card, item.isPriority && styles.cardPriority]}
@@ -1108,17 +1111,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 20,
-    paddingTop: Platform.OS === "android" ? 40 : 10,
+    paddingHorizontal: SPACING.xl,
+    paddingTop: Platform.OS === "android" ? SPACING.xxxl : SPACING.sm,
   },
 
   backButton: {
-    width: 44,
-    height: 44,
+    width: 48,
+    height: 48,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: COLORS.overlay,
-    borderRadius: 12,
+    borderRadius: RADIUS.md,
     borderWidth: 1,
     borderColor: COLORS.border,
   },
@@ -1127,9 +1130,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: COLORS.overlay,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.sm,
+    borderRadius: RADIUS.full,
     borderWidth: 1,
     borderColor: COLORS.border,
   },
@@ -1137,19 +1140,19 @@ const styles = StyleSheet.create({
   statusDot: {
     width: 8,
     height: 8,
-    borderRadius: 4,
-    marginRight: 8,
+    borderRadius: RADIUS.full,
+    marginRight: SPACING.xs,
   },
   statusText: {
     color: COLORS.secondary,
-    fontWeight: "700",
-    fontSize: 12,
+    fontFamily: TYPOGRAPHY.fontBold,
+    fontSize: TYPOGRAPHY.caption,
     letterSpacing: 1,
   },
 
   alertOverlay: {
     position: "absolute",
-    bottom: 30,
+    bottom: SPACING.xxl,
     left: 0,
     right: 0,
     alignItems: "center",
@@ -1158,41 +1161,38 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: COLORS.cardBg,
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    borderRadius: 20,
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: SPACING.md,
+    borderRadius: RADIUS.full,
     borderWidth: 2,
     borderColor: COLORS.border,
-    gap: 12,
-    shadowColor: COLORS.primary,
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
+    gap: SPACING.sm,
+    ...SHADOWS.medium,
   },
   alertBoxWarning: {
     borderColor: COLORS.dangerBorder,
-    shadowColor: COLORS.danger,
   },
   alertIconWrapper: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "rgba(255, 215, 0, 0.15)",
+    width: 36,
+    height: 36,
+    borderRadius: RADIUS.full,
+    backgroundColor: "rgba(255, 214, 10, 0.15)",
     justifyContent: "center",
     alignItems: "center",
   },
   alertText: {
     color: COLORS.secondary,
-    fontWeight: "700",
-    fontSize: 16,
+    fontFamily: TYPOGRAPHY.fontBold,
+    fontSize: TYPOGRAPHY.base,
     letterSpacing: 0.5,
   },
 
   dashboardContainer: {
     flex: 1.2,
     backgroundColor: COLORS.bg,
-    paddingHorizontal: 20,
-    paddingTop: 24,
+    paddingHorizontal: SPACING.xl,
+    paddingTop: SPACING.xl,
+    paddingBottom: 0,
     borderTopWidth: 1,
     borderTopColor: COLORS.border,
   },
@@ -1201,34 +1201,35 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: SPACING.lg,
   },
 
   dashTitle: {
     color: COLORS.secondary,
-    fontSize: 20,
-    fontWeight: "700",
+    fontSize: TYPOGRAPHY.h3,
+    fontFamily: TYPOGRAPHY.fontBold,
     letterSpacing: 0.3,
   },
   dashSubtitle: {
     color: COLORS.subtle,
-    fontSize: 13,
-    marginTop: 2,
-    fontWeight: "500",
+    fontSize: TYPOGRAPHY.small,
+    fontFamily: TYPOGRAPHY.fontMedium,
+    marginTop: SPACING.xs,
   },
 
   controlButton: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.sm,
+    borderRadius: RADIUS.full,
     borderWidth: 1,
-    gap: 8,
+    gap: SPACING.xs,
   },
   btnActive: { 
     backgroundColor: COLORS.primary,
     borderColor: COLORS.primary,
+    ...SHADOWS.small,
   },
   btnPaused: {
     backgroundColor: COLORS.cardBg,
@@ -1237,14 +1238,14 @@ const styles = StyleSheet.create({
   controlIconWrapper: {
     width: 24,
     height: 24,
-    borderRadius: 12,
+    borderRadius: RADIUS.md,
     justifyContent: "center",
     alignItems: "center",
   },
   controlBtnText: {
     color: COLORS.bg,
-    fontWeight: "600",
-    fontSize: 14,
+    fontFamily: TYPOGRAPHY.fontBold,
+    fontSize: TYPOGRAPHY.small,
     letterSpacing: 0.3,
   },
   controlBtnTextInactive: {
@@ -1255,11 +1256,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: COLORS.cardBg,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
+    borderRadius: RADIUS.lg,
+    padding: SPACING.lg,
+    marginBottom: SPACING.md,
     borderWidth: 1,
     borderColor: COLORS.border,
+    ...SHADOWS.small,
   },
   cardPriority: {
     borderColor: COLORS.dangerBorder,
@@ -1267,13 +1269,13 @@ const styles = StyleSheet.create({
   },
 
   cardIconWrapper: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "rgba(255, 215, 0, 0.1)",
+    width: 44,
+    height: 44,
+    borderRadius: RADIUS.md,
+    backgroundColor: "rgba(255, 214, 10, 0.1)",
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 14,
+    marginRight: SPACING.md,
   },
   cardIconWrapperPriority: {
     backgroundColor: "rgba(255, 59, 48, 0.15)",
@@ -1282,15 +1284,15 @@ const styles = StyleSheet.create({
   cardContent: { flex: 1 },
   cardTitle: {
     color: COLORS.secondary,
-    fontSize: 17,
-    fontWeight: "700",
+    fontSize: TYPOGRAPHY.lg,
+    fontFamily: TYPOGRAPHY.fontBold,
     letterSpacing: 0.3,
   },
   cardSubtitle: {
     color: COLORS.subtle,
-    fontSize: 13,
-    marginTop: 3,
-    fontWeight: "500",
+    fontSize: TYPOGRAPHY.small,
+    fontFamily: TYPOGRAPHY.fontMedium,
+    marginTop: SPACING.xs,
   },
 
   cardRight: {
@@ -1299,34 +1301,37 @@ const styles = StyleSheet.create({
   },
 
   confidenceText: {
-    fontSize: 18,
-    fontWeight: "700",
+    fontSize: TYPOGRAPHY.h4,
+    fontFamily: TYPOGRAPHY.fontBold,
   },
 
   emptyState: {
     alignItems: "center",
-    marginTop: 60,
+    marginTop: SPACING.xxxl,
+    paddingVertical: SPACING.xl,
   },
   emptyIconWrapper: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: "rgba(0, 255, 0, 0.1)",
+    width: 88,
+    height: 88,
+    borderRadius: RADIUS.full,
+    backgroundColor: "rgba(52, 199, 89, 0.15)",
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 16,
+    marginBottom: SPACING.lg,
+    borderWidth: 2,
+    borderColor: "rgba(52, 199, 89, 0.3)",
   },
   emptyText: {
     color: COLORS.secondary,
-    fontSize: 20,
-    fontWeight: "700",
+    fontSize: TYPOGRAPHY.h3,
+    fontFamily: TYPOGRAPHY.fontBold,
     letterSpacing: 0.5,
-    marginBottom: 6,
+    marginBottom: SPACING.xs,
   },
   emptySubtext: {
     color: COLORS.subtle,
-    fontSize: 14,
-    fontWeight: "500",
+    fontSize: TYPOGRAPHY.base,
+    fontFamily: TYPOGRAPHY.fontRegular,
   },
 
   // Permissions
@@ -1335,55 +1340,57 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.bg,
     justifyContent: "center",
     alignItems: "center",
-    padding: 30,
+    padding: SPACING.xxxl,
   },
   permissionIconWrapper: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: "rgba(255, 215, 0, 0.1)",
+    width: 120,
+    height: 120,
+    borderRadius: RADIUS.full,
+    backgroundColor: "rgba(255, 214, 10, 0.1)",
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 24,
+    marginBottom: SPACING.xxl,
     borderWidth: 2,
     borderColor: COLORS.border,
   },
   permissionTitle: {
     color: COLORS.primary,
-    fontSize: 28,
-    fontWeight: "700",
-    marginBottom: 12,
-    letterSpacing: 1,
+    fontSize: TYPOGRAPHY.h2,
+    fontFamily: TYPOGRAPHY.fontBold,
+    marginBottom: SPACING.sm,
+    letterSpacing: 1.2,
   },
   permissionSubtext: {
     color: COLORS.subtle,
     textAlign: "center",
-    marginBottom: 40,
-    fontSize: 15,
+    marginBottom: SPACING.xxxl,
+    fontSize: TYPOGRAPHY.base,
+    fontFamily: TYPOGRAPHY.fontRegular,
     lineHeight: 22,
-    paddingHorizontal: 20,
+    paddingHorizontal: SPACING.xl,
   },
   primaryButton: {
     backgroundColor: COLORS.primary,
     width: "100%",
-    paddingVertical: 16,
-    borderRadius: 16,
+    paddingVertical: SPACING.lg,
+    borderRadius: RADIUS.lg,
     alignItems: "center",
-    marginBottom: 16,
+    marginBottom: SPACING.md,
+    ...SHADOWS.medium,
   },
   primaryButtonText: {
     color: COLORS.bg,
-    fontWeight: "700",
-    fontSize: 17,
+    fontFamily: TYPOGRAPHY.fontBold,
+    fontSize: TYPOGRAPHY.lg,
     letterSpacing: 0.3,
   },
   backButtonSimple: { 
-    paddingVertical: 14,
-    paddingHorizontal: 20,
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.xl,
   },
   backButtonTextSimple: {
     color: COLORS.subtle,
-    fontSize: 16,
-    fontWeight: "600",
+    fontSize: TYPOGRAPHY.base,
+    fontFamily: TYPOGRAPHY.fontMedium,
   },
 });

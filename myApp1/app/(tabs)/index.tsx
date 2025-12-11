@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Vibration, TouchableWithoutFeedback } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Vibration, TouchableWithoutFeedback, StatusBar } from 'react-native';
 import { FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 
 // ✅ CORRECT RELATIVE PATHS
 import Netra from '../../components/Netra';
 import Mudra from '../../components/Mudra';
 import Marga from '../../components/Marga';
 import VoiceAssistant from '../../components/VoiceAssistant';
+import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '../../constants/designSystem';
 
 // 1. DEFINE TYPES
 interface FeatureCardProps {
@@ -18,29 +20,30 @@ interface FeatureCardProps {
   onPress: () => void;
 }
 
-// 2. THE FEATURE CARD COMPONENT (UI)
+// 2. THE FEATURE CARD COMPONENT (UI) - Food App Grid Style
 const FeatureCard = ({ title, subtitle, description, icon, isActive, onPress }: FeatureCardProps) => (
   <TouchableOpacity 
-    style={[styles.card, isActive && styles.activeCard]} 
+    style={[styles.gridCard, isActive && styles.activeGridCard]} 
     onPress={() => {
       Vibration.vibrate(10);
       onPress();
     }}
-    activeOpacity={0.8}
+    activeOpacity={0.85}
   >
-    <View style={[styles.iconContainer, isActive && styles.activeIconContainer]}>
-      <FontAwesome5 name={icon} size={32} color={isActive ? "#000000" : "#FFD700"} />
+    <View style={[styles.gridIconContainer, isActive && styles.activeGridIconContainer]}>
+      <FontAwesome5 name={icon} size={36} color={isActive ? COLORS.background : COLORS.primary} />
     </View>
-    <View style={styles.textContainer}>
-      {/* ✅ FIX: Changed alignment and allowed wrapping so text doesn't get cut off */}
-      <View style={styles.headerRow}>
-        <Text style={[styles.cardTitle, isActive && styles.activeText]}>{title}</Text>
-        <Text style={[styles.cardSubtitle, isActive && styles.activeText]} numberOfLines={1} ellipsizeMode="tail">{subtitle}</Text>
+    <Text style={[styles.gridTitle, isActive && styles.activeGridTitle]} numberOfLines={1}>
+      {title}
+    </Text>
+    <Text style={[styles.gridSubtitle, isActive && styles.activeGridSubtitle]} numberOfLines={2}>
+      {subtitle}
+    </Text>
+    {isActive && (
+      <View style={styles.checkmark}>
+        <FontAwesome5 name="check-circle" size={20} color={COLORS.primary} solid />
       </View>
-      <Text style={[styles.cardDescription, isActive && styles.activeText]}>
-        {description}
-      </Text>
-    </View>
+    )}
   </TouchableOpacity>
 );
 
@@ -101,151 +104,301 @@ export default function HomeScreen() {
   };
 
   return (
-    <TouchableWithoutFeedback onPress={handleTripleTap}>
-      <View style={{ flex: 1, backgroundColor: '#000000' }}>
-        <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+    <View style={{ flex: 1, backgroundColor: COLORS.background }}>
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
+      <TouchableWithoutFeedback onPress={handleTripleTap}>
+        <ScrollView 
+          style={styles.container} 
+          contentContainerStyle={styles.contentContainer}
+          showsVerticalScrollIndicator={false}
+        >
           
-          {/* HEADER */}
+          {/* HEADER WITH PROMO BANNER */}
           <View style={styles.header}>
-            {/* ✅ FIX: Reduced font size slightly to fit better */}
-            <Text style={styles.appName}>DIVYA<Text style={styles.appNameHighlight}>DRISHTI</Text></Text>
-            <Text style={styles.tagline}>AI Vision Assistant</Text>
+            <View style={styles.topBar}>
+              <TouchableOpacity style={styles.menuButton}>
+                <FontAwesome5 name="bars" size={24} color={COLORS.textPrimary} />
+              </TouchableOpacity>
+              <Text style={styles.appName}>DivyaDrishti</Text>
+              <TouchableOpacity style={styles.notificationButton}>
+                <FontAwesome5 name="bell" size={22} color={COLORS.textPrimary} />
+              </TouchableOpacity>
+            </View>
+
+            {/* PROMO BANNER */}
+            <LinearGradient
+              colors={[COLORS.primary, '#C4FF0B']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.promoBanner}
+            >
+              <View style={styles.promoContent}>
+                <View style={styles.promoText}>
+                  <Text style={styles.promoTitle}>AI Vision Assistant</Text>
+                  <Text style={styles.promoSubtitle}>Select your accessibility mode</Text>
+                </View>
+                <View style={styles.promoIcon}>
+                  <FontAwesome5 name="eye" size={48} color={COLORS.background} />
+                </View>
+              </View>
+            </LinearGradient>
           </View>
 
-          <Text style={styles.sectionTitle}>Select Assistance Mode</Text>
+          <Text style={styles.sectionTitle}>ASSISTANCE MODES</Text>
 
-          {/* GRID OF BOXES */}
-          <View style={styles.grid}>
+          {/* 2x2 GRID OF CARDS */}
+          <View style={styles.gridContainer}>
             <FeatureCard 
-              title="NETRA" subtitle="(Vision)"
-              description="Semantic Depth Detection. Identifies objects and judges distance."
+              title="NETRA" 
+              subtitle="Vision Detection"
+              description="Object & Distance"
               icon="eye"
               isActive={selectedMode === 'NETRA'}
               onPress={() => setSelectedMode('NETRA')}
             />
             <FeatureCard 
-              title="MUDRA" subtitle="(Finance)"
-              description="Currency Assistant. Scans notes and calculates total value."
+              title="MUDRA" 
+              subtitle="Currency Reader"
+              description="Note Scanner"
               icon="rupee-sign"
               isActive={selectedMode === 'MUDRA'}
               onPress={() => setSelectedMode('MUDRA')}
             />
             <FeatureCard 
-              title="MARGA" subtitle="(Navigation)"
-              description="Indoor Guide. Marker-based navigation for washrooms and exits."
+              title="MARGA" 
+              subtitle="Navigation"
+              description="Indoor Guide"
               icon="route"
               isActive={selectedMode === 'MARGA'}
               onPress={() => setSelectedMode('MARGA')}
             />
+            <FeatureCard 
+              title="VOICE" 
+              subtitle="Assistant"
+              description="Triple Tap"
+              icon="microphone-alt"
+              isActive={showVoiceAssistant}
+              onPress={() => setShowVoiceAssistant(true)}
+            />
           </View>
 
           {/* START BUTTON */}
-          <View style={styles.footer}>
+          {selectedMode && (
             <TouchableOpacity 
-              style={[styles.startButton, !selectedMode && styles.disabledButton]}
+              style={styles.startButton}
               onPress={handleStart}
-              disabled={!selectedMode}
+              activeOpacity={0.9}
             >
-              <Text style={styles.startButtonText}>
-                {selectedMode ? `ACTIVATE ${selectedMode}` : "SELECT A MODE"}
-              </Text>
-              <MaterialCommunityIcons name="camera-iris" size={28} color="#000" style={{marginLeft: 10}} />
+              <LinearGradient
+                colors={[COLORS.primary, '#C4FF0B']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.gradientButton}
+              >
+                <Text style={styles.startButtonText}>Start {selectedMode}</Text>
+                <FontAwesome5 name="arrow-right" size={24} color={COLORS.background} />
+              </LinearGradient>
             </TouchableOpacity>
-          </View>
+          )}
 
         </ScrollView>
+      </TouchableWithoutFeedback>
 
-        {/* VOICE ASSISTANT OVERLAY */}
-        {showVoiceAssistant && (
-          <VoiceAssistant
-            onNavigate={handleVoiceNavigate}
-            onClose={() => setShowVoiceAssistant(false)}
-          />
-        )}
-      </View>
-    </TouchableWithoutFeedback>
+      {/* VOICE ASSISTANT OVERLAY */}
+      {showVoiceAssistant && (
+        <VoiceAssistant
+          onNavigate={handleVoiceNavigate}
+          onClose={() => setShowVoiceAssistant(false)}
+        />
+      )}
+    </View>
   );
 }
 
 // 4. STYLES
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000000' },
-  contentContainer: { padding: 20, paddingTop: 60, paddingBottom: 40 },
-  header: { marginBottom: 30 },
+  container: { 
+    flex: 1, 
+    backgroundColor: COLORS.background,
+  },
+  contentContainer: { 
+    paddingBottom: 120,
+    flexGrow: 1,
+  },
+  
+  header: { 
+    paddingHorizontal: SPACING.lg,
+    paddingTop: SPACING.xxxl,
+    marginBottom: SPACING.xl,
+  },
+  
+  topBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: SPACING.lg,
+  },
+  
+  menuButton: {
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  
+  notificationButton: {
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   
   appName: { 
-    fontSize: 40, // ✅ Reduced from 42
-    fontFamily: 'Atkinson-Bold', 
-    color: '#FFFFFF', 
-    letterSpacing: 1 // ✅ Reduced from 2
+    fontSize: 22, 
+    fontFamily: TYPOGRAPHY.fontBold, 
+    color: COLORS.textPrimary, 
+    letterSpacing: 0.5,
   },
-  appNameHighlight: { color: '#FFD700' },
-  tagline: { 
-    fontSize: 18, 
-    color: '#8E8E93', 
-    fontFamily: 'Atkinson-Regular', 
-    marginTop: 5, 
-    letterSpacing: 1 
+  
+  promoBanner: {
+    borderRadius: RADIUS.xl,
+    padding: SPACING.lg,
+    marginTop: SPACING.sm,
+    ...SHADOWS.medium,
+  },
+  
+  promoContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  
+  promoText: {
+    flex: 1,
+  },
+  
+  promoTitle: {
+    fontSize: TYPOGRAPHY.h3,
+    fontFamily: TYPOGRAPHY.fontBold,
+    color: COLORS.background,
+    marginBottom: SPACING.xs,
+  },
+  
+  promoSubtitle: {
+    fontSize: TYPOGRAPHY.base,
+    fontFamily: TYPOGRAPHY.fontRegular,
+    color: COLORS.background,
+    opacity: 0.9,
+  },
+  
+  promoIcon: {
+    width: 80,
+    height: 80,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(10, 10, 10, 0.1)',
+    borderRadius: RADIUS.full,
   },
   
   sectionTitle: { 
-    fontSize: 14, 
-    color: '#8E8E93', 
-    fontFamily: 'Atkinson-Bold', 
+    fontSize: TYPOGRAPHY.small, 
+    color: COLORS.textSecondary, 
+    fontFamily: TYPOGRAPHY.fontBold, 
     textTransform: 'uppercase', 
-    marginBottom: 15, 
-    letterSpacing: 1 
+    marginBottom: SPACING.lg,
+    marginHorizontal: SPACING.lg,
+    letterSpacing: TYPOGRAPHY.letterSpacingWide,
   },
   
-  grid: { gap: 20, marginBottom: 40 },
-  
-  card: { flexDirection: 'row', backgroundColor: '#1C1C1E', borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255, 215, 0, 0.3)', padding: 20, alignItems: 'center' },
-  activeCard: { backgroundColor: '#FFD700', borderColor: '#FFD700' },
-  
-  iconContainer: { width: 60, height: 60, borderRadius: 30, backgroundColor: 'rgba(255, 215, 0, 0.1)', justifyContent: 'center', alignItems: 'center', marginRight: 20 },
-  activeIconContainer: { backgroundColor: '#FFFFFF' },
-  
-  textContainer: { flex: 1, justifyContent: 'center' }, // ✅ Added justifyContent
-  
-  // ✅ FIX: Changed alignment and added wrap
-  headerRow: { 
-    flexDirection: 'row', 
-    alignItems: 'center', // Changed from 'baseline'
-    flexWrap: 'wrap',     // Allows wrapping if needed
-    marginBottom: 6 
+  gridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: SPACING.lg,
+    gap: SPACING.md,
+    marginBottom: SPACING.xl,
   },
   
-  cardTitle: { 
-    fontSize: 22, 
-    fontFamily: 'Atkinson-Bold', 
-    color: '#FFD700', 
-    marginRight: 8 
-  },
-  cardSubtitle: { 
-    fontSize: 16, 
-    color: '#8E8E93', 
-    fontFamily: 'Atkinson-Bold',
-    flexShrink: 1 // ✅ Allows it to shrink if space is tight
-  },
-  cardDescription: { 
-    fontSize: 15, 
-    color: '#CCCCCC', 
-    lineHeight: 22, 
-    fontFamily: 'Atkinson-Regular',
-    marginTop: 4 // ✅ Added a little breathing room
+  gridCard: {
+    width: '48%',
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.xl,
+    padding: SPACING.lg,
+    alignItems: 'center',
+    minHeight: 160,
+    position: 'relative',
+    ...SHADOWS.small,
   },
   
-  activeText: { color: '#000000' },
+  activeGridCard: {
+    backgroundColor: COLORS.background,
+    borderWidth: 2,
+    borderColor: COLORS.primary,
+    ...SHADOWS.glow,
+  },
   
-  footer: { marginTop: 10 },
-  startButton: { backgroundColor: '#FFD700', height: 70, borderRadius: 12, justifyContent: 'center', alignItems: 'center', flexDirection: 'row' },
-  disabledButton: { backgroundColor: '#333333' },
+  gridIconContainer: {
+    width: 72,
+    height: 72,
+    borderRadius: RADIUS.xl,
+    backgroundColor: 'rgba(255, 214, 10, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: SPACING.md,
+  },
+  
+  activeGridIconContainer: {
+    backgroundColor: 'rgba(255, 214, 10, 0.2)',
+  },
+  
+  gridTitle: {
+    fontSize: TYPOGRAPHY.body,
+    fontFamily: TYPOGRAPHY.fontBold,
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.xs,
+    letterSpacing: 0.5,
+  },
+  
+  activeGridTitle: {
+    color: COLORS.primary,
+  },
+  
+  gridSubtitle: {
+    fontSize: TYPOGRAPHY.small,
+    fontFamily: TYPOGRAPHY.fontRegular,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    lineHeight: TYPOGRAPHY.lineHeightNormal * TYPOGRAPHY.small,
+  },
+  
+  activeGridSubtitle: {
+    color: COLORS.textSecondary,
+  },
+  
+  checkmark: {
+    position: 'absolute',
+    top: SPACING.sm,
+    right: SPACING.sm,
+  },
+  
+  startButton: {
+    marginHorizontal: SPACING.lg,
+    borderRadius: RADIUS.xxl,
+    overflow: 'hidden',
+    ...SHADOWS.large,
+  },
+  
+  gradientButton: {
+    height: 64,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: SPACING.md,
+  },
   
   startButtonText: { 
-    fontSize: 20, 
-    fontFamily: 'Atkinson-Bold', 
-    color: '#000000', 
-    textTransform: 'uppercase', 
-    letterSpacing: 1 
+    fontSize: TYPOGRAPHY.h3, 
+    fontFamily: TYPOGRAPHY.fontBold, 
+    color: COLORS.background, 
+    letterSpacing: 1,
   },
 });

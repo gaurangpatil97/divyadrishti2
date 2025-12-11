@@ -9,9 +9,11 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Audio } from 'expo-av';
 import * as Speech from 'expo-speech';
 import { BACKEND_IP } from '../config/env';
+import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '../constants/designSystem';
 
 interface VoiceAssistantProps {
   onNavigate: (destination: string) => void;
@@ -24,7 +26,8 @@ export default function VoiceAssistant({ onNavigate, onClose }: VoiceAssistantPr
   const [isProcessing, setIsProcessing] = useState(false);
   
   const pulseAnim = useRef(new Animated.Value(1)).current;
-  const slideAnim = useRef(new Animated.Value(300)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(0.8)).current;
   const autoStopTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const recordingRef = useRef<Audio.Recording | null>(null);
 
@@ -60,18 +63,25 @@ export default function VoiceAssistant({ onNavigate, onClose }: VoiceAssistantPr
     }
   };
 
-  // Animate slide up on mount and auto-start listening
+  // Animate modal on mount and auto-start listening
   useEffect(() => {
     let mounted = true;
 
     const initialize = async () => {
-      // Slide up animation
-      Animated.spring(slideAnim, {
-        toValue: 0,
-        useNativeDriver: true,
-        tension: 50,
-        friction: 8,
-      }).start();
+      // Fade in and scale up animation
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          useNativeDriver: true,
+          tension: 50,
+          friction: 7,
+        }),
+      ]).start();
 
       // Speak welcome message
       Speech.speak('What do you want to do today?', {
@@ -340,184 +350,266 @@ export default function VoiceAssistant({ onNavigate, onClose }: VoiceAssistantPr
 
   const handleClose = async () => {
     await cleanup();
-    Animated.timing(slideAnim, {
-      toValue: 300,
-      duration: 200,
-      useNativeDriver: true,
-    }).start(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 0.8,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
       onClose();
     });
   };
 
   return (
-    <Animated.View style={[styles.container, { transform: [{ translateY: slideAnim }] }]}>
-      <View style={styles.content}>
-        
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>Voice Assistant</Text>
+    <Animated.View style={[styles.modalOverlay, { opacity: fadeAnim }]}>
+      <TouchableOpacity 
+        style={styles.backdrop} 
+        activeOpacity={1} 
+        onPress={handleClose}
+      />
+      
+      <Animated.View style={[styles.modalContainer, { 
+        opacity: fadeAnim,
+        transform: [{ scale: scaleAnim }]
+      }]}>
+        <LinearGradient
+          colors={['rgba(28, 28, 30, 0.98)', 'rgba(10, 10, 10, 0.98)']}
+          style={styles.modalContent}
+        >
+          {/* Close Button */}
           <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-            <FontAwesome5 name="times" size={20} color="#FFD700" />
+            <View style={styles.closeIconContainer}>
+              <FontAwesome5 name="times" size={20} color={COLORS.textPrimary} />
+            </View>
           </TouchableOpacity>
-        </View>
 
-        {/* Microphone Button */}
-        <View style={styles.micContainer}>
-          <TouchableOpacity
-            onPress={handleMicPress}
-            disabled={isProcessing}
-            activeOpacity={0.8}
-          >
-            <Animated.View style={[
-              styles.micButton,
-              isListening && styles.micButtonActive,
-              { transform: [{ scale: pulseAnim }] }
-            ]}>
-              {isProcessing ? (
-                <ActivityIndicator size="large" color="#000" />
-              ) : (
-                <FontAwesome5
-                  name={isListening ? 'stop' : 'microphone'}
-                  size={40}
-                  color={isListening ? '#FF0000' : '#000'}
-                />
-              )}
-            </Animated.View>
-          </TouchableOpacity>
-          
+          {/* Microphone Button */}
+          <View style={styles.micContainer}>
+            {isListening && (
+              <>
+                <Animated.View style={[styles.pulseRing, styles.pulseRing1, { opacity: pulseAnim }]} />
+                <Animated.View style={[styles.pulseRing, styles.pulseRing2, { opacity: pulseAnim }]} />
+              </>
+            )}
+            <TouchableOpacity
+              onPress={handleMicPress}
+              disabled={isProcessing}
+              activeOpacity={0.85}
+            >
+              <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+                <LinearGradient
+                  colors={isListening ? ['#FF3B30', '#FF6B6B'] : [COLORS.primary, '#C4FF0B']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.micButton}
+                >
+                  {isProcessing ? (
+                    <ActivityIndicator size={32} color={COLORS.background} />
+                  ) : (
+                    <FontAwesome5
+                      name={isListening ? 'stop' : 'microphone'}
+                      size={32}
+                      color={COLORS.background}
+                    />
+                  )}
+                </LinearGradient>
+              </Animated.View>
+            </TouchableOpacity>
+          </View>
+
           <Text style={styles.statusText}>
             {isProcessing
-              ? 'Processing your request...'
+              ? 'Processing...'
               : isListening
-              ? '🔴 Recording... Speak now!'
-              : 'Ready to listen'}
+              ? 'Listening'
+              : 'Tap to speak'}
           </Text>
-        </View>
 
-        {/* Transcribed Text */}
-        {transcribedText ? (
-          <View style={styles.textContainer}>
-            <Text style={styles.textLabel}>You said:</Text>
-            <Text style={styles.transcribedText}>{transcribedText}</Text>
-          </View>
-        ) : (
-          <View style={styles.suggestionsContainer}>
-            <Text style={styles.suggestionsTitle}>Voice commands you can use:</Text>
-            <Text style={styles.suggestionText}>Go to Netra or Open vision</Text>
-            <Text style={styles.suggestionText}>Go to Mudra or Open currency</Text>
-            <Text style={styles.suggestionText}>Go to Marga or Open navigation</Text>
-            <Text style={styles.instructionText}>
-              💡 Speak clearly after the vibration
-            </Text>
-          </View>
-        )}
-      </View>
+          {/* Transcribed Text or Suggestions */}
+          {transcribedText ? (
+            <View style={styles.textContainer}>
+              <Text style={styles.transcribedText}>{transcribedText}</Text>
+            </View>
+          ) : (
+            <View style={styles.suggestionsGrid}>
+              <View style={styles.suggestionRow}>
+                <TouchableOpacity style={styles.suggestionCard} activeOpacity={0.8}>
+                  <View style={styles.suggestionIconBox}>
+                    <FontAwesome5 name="eye" size={20} color={COLORS.textPrimary} />
+                  </View>
+                  <Text style={styles.suggestionCardText}>Open Netra</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity style={styles.suggestionCard} activeOpacity={0.8}>
+                  <View style={styles.suggestionIconBox}>
+                    <FontAwesome5 name="rupee-sign" size={20} color={COLORS.textPrimary} />
+                  </View>
+                  <Text style={styles.suggestionCardText}>Open Mudra</Text>
+                </TouchableOpacity>
+              </View>
+              
+              <TouchableOpacity style={styles.suggestionCardFull} activeOpacity={0.8}>
+                <View style={styles.suggestionIconBox}>
+                  <FontAwesome5 name="route" size={20} color={COLORS.textPrimary} />
+                </View>
+                <Text style={styles.suggestionCardText}>Open Marga</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </LinearGradient>
+      </Animated.View>
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  modalOverlay: {
     position: 'absolute',
-    bottom: 0,
+    top: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#1C1C1E',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingBottom: 40,
-    shadowColor: '#FFD700',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 10,
-  },
-  content: {
-    padding: 24,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    bottom: 0,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 30,
+    zIndex: 1000,
   },
-  title: {
-    fontSize: 24,
-    fontFamily: 'AtkinsonHyperlegible_700Bold',
-    color: '#FFD700',
+  backdrop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+  },
+  modalContainer: {
+    width: '80%',
+    maxWidth: 340,
+    maxHeight: '45%',
+    borderRadius: RADIUS.xxl,
+    overflow: 'hidden',
+    ...SHADOWS.large,
+  },
+  modalContent: {
+    padding: SPACING.lg,
+    paddingTop: SPACING.lg,
+    paddingBottom: SPACING.lg,
+    borderRadius: RADIUS.xxl,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 214, 10, 0.2)',
   },
   closeButton: {
-    padding: 8,
+    position: 'absolute',
+    top: SPACING.md,
+    right: SPACING.md,
+    zIndex: 10,
+  },
+  closeIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: RADIUS.full,
+    backgroundColor: 'rgba(142, 142, 147, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   micContainer: {
     alignItems: 'center',
-    marginVertical: 20,
+    justifyContent: 'center',
+    paddingVertical: SPACING.lg,
+    position: 'relative',
+    marginTop: SPACING.md,
+  },
+  pulseRing: {
+    position: 'absolute',
+    borderRadius: RADIUS.full,
+    borderWidth: 2,
+    borderColor: COLORS.primary,
+  },
+  pulseRing1: {
+    width: 80,
+    height: 80,
+  },
+  pulseRing2: {
+    width: 110,
+    height: 110,
   },
   micButton: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: '#FFD700',
+    width: 80,
+    height: 80,
+    borderRadius: RADIUS.full,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
-  },
-  micButtonActive: {
-    backgroundColor: '#FFD700',
-    shadowColor: '#FFD700',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 20,
-    elevation: 8,
+    ...SHADOWS.large,
   },
   statusText: {
-    fontSize: 18,
-    color: '#CCCCCC',
-    fontFamily: 'AtkinsonHyperlegible_700Bold',
+    fontSize: TYPOGRAPHY.small,
+    color: COLORS.textPrimary,
+    fontFamily: TYPOGRAPHY.fontBold,
     textAlign: 'center',
+    marginTop: SPACING.sm,
+    marginBottom: SPACING.md,
   },
   textContainer: {
-    backgroundColor: '#2C2C2E',
-    borderRadius: 12,
-    padding: 16,
-    marginTop: 20,
-  },
-  textLabel: {
-    fontSize: 14,
-    color: '#8E8E93',
-    marginBottom: 8,
-    fontFamily: 'AtkinsonHyperlegible_700Bold',
+    backgroundColor: 'rgba(28, 28, 30, 0.6)',
+    borderRadius: RADIUS.lg,
+    padding: SPACING.md,
+    borderWidth: 2,
+    borderColor: COLORS.primary,
   },
   transcribedText: {
-    fontSize: 18,
-    color: '#FFFFFF',
-    lineHeight: 24,
-    fontFamily: 'AtkinsonHyperlegible_400Regular',
-  },
-  suggestionsContainer: {
-    marginTop: 20,
-    padding: 16,
-    backgroundColor: '#2C2C2E',
-    borderRadius: 12,
-  },
-  suggestionsTitle: {
-    fontSize: 16,
-    color: '#FFD700',
-    fontFamily: 'AtkinsonHyperlegible_700Bold',
-    marginBottom: 12,
-  },
-  suggestionText: {
-    fontSize: 14,
-    color: '#CCCCCC',
-    marginVertical: 4,
-    lineHeight: 20,
-    fontFamily: 'AtkinsonHyperlegible_400Regular',
-  },
-  instructionText: {
-    fontSize: 13,
-    color: '#8E8E93',
-    marginTop: 12,
-    fontFamily: 'AtkinsonHyperlegible_400Regular',
+    fontSize: TYPOGRAPHY.base,
+    color: COLORS.textPrimary,
+    lineHeight: TYPOGRAPHY.lineHeightRelaxed * TYPOGRAPHY.base,
+    fontFamily: TYPOGRAPHY.fontRegular,
     textAlign: 'center',
+  },
+  suggestionsGrid: {
+    gap: SPACING.sm,
+  },
+  suggestionRow: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+  },
+  suggestionCard: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.lg,
+    padding: SPACING.md,
+    gap: SPACING.sm,
+    borderWidth: 1,
+    borderColor: 'rgba(142, 142, 147, 0.3)',
+    ...SHADOWS.small,
+  },
+  suggestionCardFull: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.lg,
+    padding: SPACING.md,
+    gap: SPACING.md,
+    borderWidth: 1,
+    borderColor: 'rgba(142, 142, 147, 0.3)',
+    ...SHADOWS.small,
+  },
+  suggestionIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: RADIUS.md,
+    backgroundColor: 'rgba(255, 214, 10, 0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  suggestionCardText: {
+    fontSize: TYPOGRAPHY.base,
+    color: COLORS.textPrimary,
+    fontFamily: TYPOGRAPHY.fontRegular,
+    flex: 1,
   },
 });
