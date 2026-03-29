@@ -247,7 +247,7 @@ export default function OutdoorNavigationScreen({ route, startLocation, endLocat
       </View>
 
       {showMap ? (
-        /* Map View */
+        /* Map View - Clean without overlay */
         <View style={styles.mapContainer}>
           <MapView
             ref={mapRef}
@@ -296,7 +296,7 @@ export default function OutdoorNavigationScreen({ route, startLocation, endLocat
           </TouchableOpacity>
         </View>
       ) : (
-        /* Instruction View */
+        /* Full Instruction View */
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
@@ -459,6 +459,91 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     ...SHADOWS.glow,
+  },
+  mapOverlay: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+    right: 20,
+    gap: SPACING.md,
+  },
+  instructionCard: {
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.lg,
+    padding: SPACING.lg,
+    borderWidth: 2,
+    borderColor: COLORS.primary,
+    ...SHADOWS.glow,
+  },
+  instructionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+    marginBottom: SPACING.sm,
+  },
+  stepCounter: {
+    color: COLORS.textSecondary,
+    fontSize: TYPOGRAPHY.small,
+    fontFamily: TYPOGRAPHY.fontBold,
+    flex: 1,
+  },
+  progressContainer: {
+    marginTop: SPACING.md,
+    gap: SPACING.xs,
+  },
+  progressBar: {
+    height: 8,
+    backgroundColor: COLORS.border,
+    borderRadius: RADIUS.sm,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: COLORS.primary,
+  },
+  progressText: {
+    color: COLORS.textSecondary,
+    fontSize: TYPOGRAPHY.small,
+    fontFamily: TYPOGRAPHY.fontRegular,
+    textAlign: 'center',
+  },
+  distanceInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: SPACING.sm,
+  },
+  distanceText: {
+    color: COLORS.textPrimary,
+    fontSize: TYPOGRAPHY.base,
+    fontFamily: TYPOGRAPHY.fontBold,
+  },
+  quickActions: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+  },
+  actionButton: {
+    flex: 1,
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.md,
+    padding: SPACING.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: SPACING.xs,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  actionButtonText: {
+    color: COLORS.textPrimary,
+    fontSize: TYPOGRAPHY.small,
+    fontFamily: TYPOGRAPHY.fontBold,
+  },
+  startButton: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  startButtonText: {
+    color: COLORS.background,
   },
   waypointMarker: {
     width: 30,

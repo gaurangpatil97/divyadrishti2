@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Vibration, TouchableWithoutFeedback, StatusBar } from 'react-native';
-import { FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
+import { FontAwesome5 } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
 // ✅ CORRECT RELATIVE PATHS
@@ -50,26 +50,33 @@ const FeatureCard = ({ title, subtitle, description, icon, isActive, onPress }: 
 // 3. MAIN HOME SCREEN
 export default function HomeScreen() {
   const [selectedMode, setSelectedMode] = useState<string | null>(null);
-  const [isScanning, setIsScanning] = useState(false); 
   const [showVoiceAssistant, setShowVoiceAssistant] = useState(false);
   const [tapCount, setTapCount] = useState(0);
   const [tapTimeout, setTapTimeout] = useState<ReturnType<typeof setTimeout> | null>(null);
+  const [activeComponent, setActiveComponent] = useState<'home' | 'netra' | 'mudra' | 'marga'>('home');
 
   // --- TRIPLE TAP DETECTION ---
   const handleTripleTap = () => {
+    console.log('👆 Screen tapped! Current count:', tapCount);
+    
     if (tapTimeout) {
       clearTimeout(tapTimeout);
     }
 
     const newTapCount = tapCount + 1;
     setTapCount(newTapCount);
+    
+    console.log('👆 New tap count:', newTapCount);
 
     if (newTapCount === 3) {
+      console.log('👆👆👆 TRIPLE TAP DETECTED! Opening voice assistant...');
       Vibration.vibrate([0, 50, 100, 50]);
       setShowVoiceAssistant(true);
       setTapCount(0);
     } else {
+      // Reset after 500ms if no third tap
       const timeout = setTimeout(() => {
+        console.log('👆 Resetting tap count');
         setTapCount(0);
       }, 500);
       setTapTimeout(timeout);
@@ -78,20 +85,44 @@ export default function HomeScreen() {
 
   // --- VOICE ASSISTANT NAVIGATION ---
   const handleVoiceNavigate = (destination: string) => {
-    if (destination.includes('NETRA')) setSelectedMode('NETRA');
-    if (destination.includes('MUDRA')) setSelectedMode('MUDRA');
-    if (destination.includes('MARGA')) setSelectedMode('MARGA');
+    console.log('🎯 handleVoiceNavigate called with:', destination);
+    console.log('🎯 Current activeComponent before change:', activeComponent);
     
+    // Set navigation FIRST before closing voice assistant
+    if (destination.includes('NETRA')) {
+      console.log('🎯 Setting activeComponent to: netra');
+      setActiveComponent('netra');
+    } else if (destination.includes('MUDRA')) {
+      console.log('🎯 Setting activeComponent to: mudra');
+      setActiveComponent('mudra');
+    } else if (destination.includes('MARGA')) {
+      console.log('🎯 Setting activeComponent to: marga');
+      setActiveComponent('marga');
+    } else {
+      console.log('❌ No match found for destination:', destination);
+    }
+    
+    // Close assistant AFTER setting navigation
     setShowVoiceAssistant(false);
-    setIsScanning(true);
   };
 
-  // --- LOGIC: SWITCHING COMPONENTS ---
-  if (isScanning) {
-    if (selectedMode === 'NETRA') return <Netra onBack={() => setIsScanning(false)} />;
-    if (selectedMode === 'MUDRA') return <Mudra onBack={() => setIsScanning(false)} />;
-    if (selectedMode === 'MARGA') return <Marga onBack={() => setIsScanning(false)} />;
+  console.log('📊 RENDER - activeComponent is:', activeComponent);
+
+  // --- RENDER ACTIVE COMPONENT ---
+  if (activeComponent === 'netra') {
+    console.log('✅ Rendering Netra component');
+    return <Netra onBack={() => setActiveComponent('home')} />;
   }
+  if (activeComponent === 'mudra') {
+    console.log('✅ Rendering Mudra component');
+    return <Mudra onBack={() => setActiveComponent('home')} />;
+  }
+  if (activeComponent === 'marga') {
+    console.log('✅ Rendering Marga component');
+    return <Marga onBack={() => setActiveComponent('home')} />;
+  }
+  
+  console.log('📊 Rendering home screen');
 
   // --- LOGIC: START BUTTON ---
   const handleStart = () => {
@@ -100,21 +131,25 @@ export default function HomeScreen() {
       alert("Please select a mode first!");
       return;
     }
-    setIsScanning(true); 
+    if (selectedMode === 'NETRA') setActiveComponent('netra');
+    if (selectedMode === 'MUDRA') setActiveComponent('mudra');
+    if (selectedMode === 'MARGA') setActiveComponent('marga');
   };
 
   return (
     <View style={{ flex: 1, backgroundColor: COLORS.background }}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
-      <TouchableWithoutFeedback onPress={handleTripleTap}>
-        <ScrollView 
-          style={styles.container} 
-          contentContainerStyle={styles.contentContainer}
-          showsVerticalScrollIndicator={false}
-        >
-          
-          {/* HEADER WITH PROMO BANNER */}
-          <View style={styles.header}>
+      
+      <ScrollView 
+        style={styles.container} 
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        <TouchableWithoutFeedback onPress={handleTripleTap}>
+          <View style={{ flex: 1 }}>
+            
+            {/* HEADER WITH PROMO BANNER */}
+            <View style={styles.header}>
             <View style={styles.topBar}>
               <TouchableOpacity style={styles.menuButton}>
                 <FontAwesome5 name="bars" size={24} color={COLORS.textPrimary} />
@@ -201,8 +236,9 @@ export default function HomeScreen() {
             </TouchableOpacity>
           )}
 
-        </ScrollView>
-      </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </ScrollView>
 
       {/* VOICE ASSISTANT OVERLAY */}
       {showVoiceAssistant && (

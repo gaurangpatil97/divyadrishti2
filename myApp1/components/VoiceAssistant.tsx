@@ -315,26 +315,35 @@ export default function VoiceAssistant({ onNavigate, onClose }: VoiceAssistantPr
   const processCommand = (text: string) => {
     const lowerText = text.toLowerCase();
     
-    // Navigation commands
+    console.log('🎯 Processing command:', lowerText);
+    
+    // Navigation commands - Navigate immediately without waiting for speech
     if (lowerText.includes('netra') || lowerText.includes('vision') || lowerText.includes('detection') || lowerText.includes('eye')) {
-      Speech.speak('Opening Netra vision mode', {
-        onDone: () => {
-          setTimeout(() => onNavigate('NETRA'), 300);
-        }
-      });
+      console.log('🎯 Detected NETRA command');
+      console.log('🎯 onNavigate function is:', typeof onNavigate);
+      Speech.speak('Opening Netra vision mode');
+      setTimeout(() => {
+        console.log('🎯 Calling onNavigate with NETRA');
+        console.log('🎯 About to execute: onNavigate(NETRA)');
+        onNavigate('NETRA');
+        console.log('🎯 onNavigate(NETRA) executed');
+      }, 300);
     } else if (lowerText.includes('mudra') || lowerText.includes('currency') || lowerText.includes('money') || lowerText.includes('finance') || lowerText.includes('rupee')) {
-      Speech.speak('Opening Mudra currency assistant', {
-        onDone: () => {
-          setTimeout(() => onNavigate('MUDRA'), 300);
-        }
-      });
+      console.log('🎯 Detected MUDRA command');
+      Speech.speak('Opening Mudra currency assistant');
+      setTimeout(() => {
+        console.log('🎯 Calling onNavigate with MUDRA');
+        onNavigate('MUDRA');
+      }, 300);
     } else if (lowerText.includes('marga') || lowerText.includes('navigation') || lowerText.includes('navigate') || lowerText.includes('route') || lowerText.includes('direction')) {
-      Speech.speak('Opening Marga navigation mode', {
-        onDone: () => {
-          setTimeout(() => onNavigate('MARGA'), 300);
-        }
-      });
+      console.log('🎯 Detected MARGA command');
+      Speech.speak('Opening Marga navigation mode');
+      setTimeout(() => {
+        console.log('🎯 Calling onNavigate with MARGA');
+        onNavigate('MARGA');
+      }, 300);
     } else {
+      console.log('❌ No valid command detected');
       Speech.speak('I can help you navigate to Netra, Mudra, or Marga. Please say one of these.');
       setIsProcessing(false);
     }
