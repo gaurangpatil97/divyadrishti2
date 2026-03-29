@@ -4,6 +4,7 @@ import logging
 from collections import defaultdict
 from datetime import datetime
 import os
+import google.generativeai as genai
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -19,6 +20,12 @@ CORS(app)
 load_dotenv()
 # Initialize Groq client (make sure to set GROQ_API_KEY environment variable)
 groq_client = Groq(api_key=os.getenv('GROQ_API_KEY'))
+
+# Configure Gemini
+# MAKE SURE TO ADD GEMINI_API_KEY TO YOUR .env FILE
+genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
+# In server.py, line ~29
+gemini_model = genai.GenerativeModel('gemini-flash-latest')
 
 # Configure logging (reduced for performance)
 logging.basicConfig(
@@ -556,6 +563,84 @@ def transcribe_audio():
             'success': False,
             'error': str(e)
         }), 500
+    
+        # ==================== CURRENCY COUNTING ENDPOINT ====================
+@app.route('/count', methods=['POST'])
+def count_currency():
+    """
+    Detect and count currency notes using Gemini 1.5 Flash.
+    Expects: 'image' file in form-data.
+    Returns: JSON with counts and total value.
+    """
+    start_time = time.time()
+    
+    if 'image' not in request.files:
+        return jsonify({"error": "No image provided"}), 400
+
+    try:
+        file = request.files['image']
+        
+        # 1. Prepare image for Gemini (read bytes directly)
+        image_bytes = file.read()
+        image = Image.open(io.BytesIO(image_bytes))
+
+        # 2. Define the Prompt
+        # We ask for strict JSON output to make parsing easier for the app
+        prompt = """
+        Analyze this image and identify the Indian currency notes present.
+        
+        Output Requirements:
+        1. Return ONLY a valid JSON object.
+        2. Format: {"500": count, "200": count, "100": count, "50": count, "20": count, "10": count}
+        3. If a denomination is not found, set its count to 0.
+        4. Do not include markdown formatting (like ```json ... ```). just the raw JSON string.
+        """
+
+        # 3. Call Gemini API
+        response = gemini_model.generate_content([prompt, image])
+        response_text = response.text.strip()
+
+        # 4. Clean up response (Gemini sometimes adds markdown backticks)
+        if response_text.startswith("```"):
+            response_text = response_text.replace("```json", "").replace("```", "")
+        
+        # 5. Parse JSON
+        import json
+        counts = json.loads(response_text)
+        
+        # 6. Calculate Total Value
+        total_value = 0
+        details = []
+        
+        for note, quantity in counts.items():
+            if quantity > 0:
+                val = int(note)
+                total_value += val * quantity
+                details.append(f"{quantity} notes of {note}")
+
+        # Construct a natural language string for the frontend to speak
+        if total_value == 0:
+            speech_text = "I do not see any currency notes."
+        else:
+            speech_text = f"Total value is {total_value} rupees. Found " + ", ".join(details)
+
+        logger.info(f"💰 Currency detection successful. Total: {total_value}")
+
+        return jsonify({
+            "success": True,
+            "counts": counts,
+            "total_value": total_value,
+            "speech": speech_text,
+            "processing_time": round(time.time() - start_time, 2)
+        })
+
+    except Exception as e:
+        logger.error(f"❌ Currency detection error: {e}")
+        return jsonify({
+            "success": False,
+            "error": str(e),
+            "speech": "Sorry, I encountered an error checking the currency."
+        }), 500
 
 # ==================== STARTUP ====================
 if __name__ == '__main__':
@@ -597,3 +682,4 @@ if __name__ == '__main__':
         debug=False,
         threaded=True
     )
+

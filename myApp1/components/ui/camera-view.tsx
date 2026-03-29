@@ -4,7 +4,7 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as Speech from 'expo-speech';
 
 // ⚠️ Replace with your IPv4 (from ipconfig)
-const SERVER_URL = 'http://192.168.31.185:5000/detect';
+const SERVER_URL = 'http://10.0.57.99:5000/detect';
 
 export default function CameraScreen() {
   const [permission, requestPermission] = useCameraPermissions();

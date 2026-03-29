@@ -55,7 +55,7 @@
 
 // // --- CONFIGURATION ---
 // const CONFIG = {
-//   SERVER_URL: 'http://192.168.31.18531.185:5000/detect',
+//   SERVER_URL: 'http://10.0.57.9931.185:5000/detect',
 //   FRAME_RATE: 10,
 //   REQUEST_TIMEOUT: 5000,
 //   RECONNECT_DELAY: 1000,

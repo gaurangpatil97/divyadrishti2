@@ -1,2 +1,2 @@
 // Backend IP Configuration
-export const BACKEND_IP = '192.168.31.185';
+export const BACKEND_IP = '10.0.57.99';
