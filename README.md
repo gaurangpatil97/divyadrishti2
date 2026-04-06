@@ -11,9 +11,17 @@
   <img src="https://img.shields.io/badge/YOLOv11-FF7F00?style=for-the-badge&logoColor=white" />
   <img src="https://img.shields.io/badge/YOLOv8-00FFFF?style=for-the-badge&logoColor=black" />
   <a href="https://drive.google.com/drive/folders/10guY9kA3PY8oUWHxymmFogaXssuQiRtX?usp=drive_link">
-    <img src="https://img.shields.io/badge/Project_Assets-blue?style=for-the-badge&logo=google-drive&logoColor=white" />
+    <img src="https://img.shields.io/badge/Demo_%26_Docs-4285F4?style=for-the-badge&logo=google-drive&logoColor=white" />
   </a>
 </p>
+
+---
+
+## 🎬 Live Demo & Project Assets
+
+See DivyaDrishti in action — demo videos, model weights, and full documentation are available in the drive below.
+
+> 👉 **[Open Project Drive →](https://drive.google.com/drive/folders/10guY9kA3PY8oUWHxymmFogaXssuQiRtX?usp=drive_link)**
 
 ---
 
@@ -36,13 +44,6 @@ DivyaDrishti shifts the entire compute payload to the user's device:
 | **Zero network dependency** | Fully operational in subways, rural areas, and dead zones |
 | **Sub-50ms inference** | Eliminates round-trip latency for real-time hazard detection |
 | **Data privacy** | Raw video and GPS telemetry never leave the device |
-
----
-
-## 📂 Project Assets & Demo
-
-All project documentation, demonstration videos, and additional resources can be found here:  
-👉 **[DivyaDrishti Google Drive Folder](https://drive.google.com/drive/folders/10guY9kA3PY8oUWHxymmFogaXssuQiRtX?usp=drive_link)**
 
 ---
 
@@ -102,9 +103,10 @@ Every interaction was designed ground-up for visually impaired and low-vision us
 ---
 
 ## 🚀 Getting Started
+
 ```bash
 # Clone the repository
-git clone [https://github.com/gaurangpatil97/divyadrishti](https://github.com/gaurangpatil97/divyadrishti)
+git clone https://github.com/gaurangpatil97/divyadrishti
 
 # Navigate into the project
 cd divyadrishti
@@ -120,3 +122,4 @@ npx react-native run-android
 
 # Run on iOS
 npx react-native run-ios
+```
