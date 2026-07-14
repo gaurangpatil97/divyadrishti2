@@ -2,9 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as Speech from 'expo-speech';
+import { BACKEND_IP } from '../../config/env';
 
 // ⚠️ Replace with your IPv4 (from ipconfig)
-const SERVER_URL = 'http://10.0.57.99:5000/detect';
+const SERVER_URL = `http://${BACKEND_IP}:5000/detect`;
 
 export default function CameraScreen() {
   const [permission, requestPermission] = useCameraPermissions();

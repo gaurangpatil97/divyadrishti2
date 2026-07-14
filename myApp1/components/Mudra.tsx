@@ -4,10 +4,11 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions } from 'expo-camera'; // Modern Expo Camera
 import * as Speech from 'expo-speech';
 import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '../constants/designSystem';
+import { BACKEND_IP } from '../config/env';
 
 // --- CONFIGURATION ---
 // ⚠️ IMPORTANT: Replace 'X' with your laptop's actual IP address (e.g., 192.168.1.5)
-const API_URL = 'http://10.0.57.99:5000/count'; 
+const API_URL = `http://${BACKEND_IP}:5000/count`; 
 
 interface Props {
   onBack: () => void;
